@@ -1,0 +1,27 @@
+gsub-cmd(1)
+===========
+
+NAME
+----
+gsub-cmd - Submit a single command
+
+SYNOPSIS
+--------
+[verse]
+'gsub cmd' <command> [<args>...] [-- <qsub args>...]
+
+DESCRIPTION
+-----------
+TODO
+
+EXAMPLES
+--------
+TODO
+
+AUTHOR
+------
+Maksim Lapin <mlapin@mpi-inf.mpg.de>.
+
+SEE ALSO
+--------
+**gsub**(1), **gsub-file**(1).
