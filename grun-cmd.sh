@@ -1,12 +1,15 @@
 #!/bin/bash
+#
+# Execute a command
 set -e
 
-MAXRESUB=$1
+MAX_ATTEMPTS="$1"
 shift
 
 $@ || {
-    ABSPATH="$(readlink -f $0)"
-    LOCALDIR="${ABSPATH%/*}"
-    . "$LOCALDIR/gtools-setup.sh"
-    command_failed "$@"
+  abspath="$(readlink -f "$0")"
+  LOCAL_DIR="${abspath%/*}" # used in the setup script
+  . "${LOCAL_DIR}/gtools-setup.sh"
+  command_failed "$@"
+  exit "$?"
 }

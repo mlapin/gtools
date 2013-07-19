@@ -1,77 +1,80 @@
 #!/bin/bash
+#
+# Submits grid engine jobs
 set -e
-NAME="${0##*/}"
-ABSPATH="$(readlink -f $0)"
-LOCALDIR="${ABSPATH%/*}"
-. "$LOCALDIR/gtools-setup.sh"
+name="${0##*/}"
 
 usage() {
-    cat <<EOF
-usage: $NAME [--version] [--help] <command> [<args>]
+  cat <<EOF
+usage: ${name} [--version] [--help] <command> [<args>]
 
 Commands:
    cmd        Submit a single command
    file       Submit a set of commands listed in a file
 
-See '$NAME help <command>' for more information on a specific command.
+See '${name} help <command>' for more information on a specific command.
 EOF
 }
 
 unknown_command() {
-    echo "$NAME: '$1' is not a $NAME command. See '$NAME --help'." 1>&2
-    exit 1
+  echo "${name}: '$1' is not a ${name} command. See '${name} --help'." 1>&2
+  exit 1
 }
 
 help() {
-    case "$1" in
-        '')
-            usage
-            ;;
-        gsub*)
-            man "$MANDIR/gsub.1"
-            ;;
-        cmd|command)
-            man "$MANDIR/gsub-cmd.1"
-            ;;
-        file)
-            man "$MANDIR/gsub-file.1"
-            ;;
-        *)
-            unknown_command $1
-            ;;
-    esac
+  case "$1" in
+    '')
+      usage
+      ;;
+    gsub*)
+      man "${MAN_DIR}/gsub.1"
+      ;;
+    cmd|command)
+      man "${MAN_DIR}/gsub-cmd.1"
+      ;;
+    file)
+      man "${MAN_DIR}/gsub-file.1"
+      ;;
+    *)
+      unknown_command "$1"
+      ;;
+  esac
 }
 
-if [ -z "$1" ] ; then
-    usage
-    exit 1
+
+abspath="$(readlink -f "$0")"
+LOCAL_DIR="${abspath%/*}" # used in the setup script
+. "${LOCAL_DIR}/gtools-setup.sh"
+
+if [[ -z "$1" ]] ; then
+  usage
+  exit 1
 fi
 
-while [ $# -gt 0 ]
-do
-    case "$1" in
-        cmd|command)
-            shift
-            . "$LOCALDIR/gsub-cmd.sh" "$@"
-            break
-            ;;
-        file)
-            shift
-            . "$LOCALDIR/gsub-file.sh" "$@"
-            break
-            ;;
-        -h|--help|help)
-            shift
-            help $@
-            exit 0
-            ;;
-        --version)
-            echo "$NAME: gtools version $VERSION"
-            exit 0
-            ;;
-        *)
-            unknown_command $1
-            ;;
-    esac
-    shift
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    cmd|command)
+      shift
+      . "${LOCAL_DIR}/gsub-cmd.sh" "$@"
+      break
+      ;;
+    file)
+      shift
+      . "${LOCAL_DIR}/gsub-file.sh" "$@"
+      break
+      ;;
+    help|--help|-h)
+      shift
+      help "$@"
+      break
+      ;;
+    --version)
+      echo "${name}: gtools version $VERSION"
+      break
+      ;;
+    *)
+      unknown_command "$1"
+      ;;
+  esac
+  shift
 done

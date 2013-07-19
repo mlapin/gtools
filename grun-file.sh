@@ -1,27 +1,30 @@
 #!/bin/bash
+#
+# Execute commands from a file
 set -e
 
-if [ -z "$SGE_TASK_ID" ];  then
-    echo '$SGE_TASK_ID is not set.'
-    exit 1
+if [[ -z "${SGE_TASK_ID}" ]]; then
+  echo '$SGE_TASK_ID is not set.'
+  exit 1
 fi
 
-CMD_FILE=$1
-STEP=$2
-MAXRESUB=$3
+cmd_file="$1"
+step="$2"
+MAX_ATTEMPTS="$3"
 
-FAILED=
-TID=${TID:-$SGE_TASK_ID}
-tail -n +$SGE_TASK_ID "$CMD_FILE" | head -n $STEP | while read LINE
-do
-    eval "$LINE" || {
-        if [ -z $FAILED ] ; then
-            FAILED=1
-            ABSPATH="$(readlink -f $0)"
-            LOCALDIR="${ABSPATH%/*}"
-            . "$LOCALDIR/gtools-setup.sh"
-        fi
-        command_failed "$LINE"
-    }
-    TID=$((TID+1))
-done
+failed=
+TID=${TID:-${SGE_TASK_ID}}
+while read line; do
+  eval "$line" || {
+    if [[ -z ${failed} ]] ; then
+      # lazy initialization
+      failed=1
+      abspath="$(readlink -f "$0")"
+      LOCAL_DIR="${abspath%/*}" # used in the setup script
+      . "${LOCAL_DIR}/gtools-setup.sh"
+    fi
+    command_failed "$line"
+    exit "$?"
+  }
+  TID=$((TID+1))
+done < <(tail -n +"${SGE_TASK_ID}" "${cmd_file}" | head -n "${step}")
