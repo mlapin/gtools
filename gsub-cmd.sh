@@ -26,4 +26,4 @@ if [[ ${#cmd_args[@]} -eq 0 ]] ; then
 fi
 
 qsubmit -N "${cmd_args[0]}" ${QSUB_OPT} "$@" -b y \
-"${LOCAL_DIR}/grun-cmd.sh" ${MAX_ATTEMPTS} "${cmd_args[@]}"
+"${LOCAL_DIR}/grun-cmd.sh" "${MAX_ATTEMPTS}" "${cmd_args[@]}"

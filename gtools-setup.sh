@@ -39,7 +39,7 @@ qsubmit() {
   # If there is no qsub, ssh to a submit host and submit there
   command -v qsub >/dev/null && qsub "$@" || {
     local args
-    args=$(printf " '%s'" "$@")
+    args=$(printf " %q" "$@")
     ssh -x submit-squeeze \
       "source /n1_grid/current/inf/common/settings.sh && qsub $args"
   }

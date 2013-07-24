@@ -55,5 +55,5 @@ fi
 
 total=$(wc -l "${cmd_file}" | cut -f1 -d' ')
 
-qsubmit -N "${cmd_name}" ${QSUB_OPT} -t 1-${total}:${step} "$@" -b y \
-"${LOCAL_DIR}/grun-file.sh" "${cmd_file}" ${step} ${MAX_ATTEMPTS}
+qsubmit -N "${cmd_name}" ${QSUB_OPT} -t "1-${total}:${step}" "$@" -b y \
+"${LOCAL_DIR}/grun-file.sh" "${cmd_file}" "${step}" "${MAX_ATTEMPTS}"
