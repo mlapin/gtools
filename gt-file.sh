@@ -1,8 +1,9 @@
 #!/bin/bash
 #
-# Submit a set of commands listed in a file
+# Submits a set of commands listed in a file
 set -e
 set -o pipefail
+name="${GT_NAME}-file"
 
 usage() {
   cat <<EOF
@@ -29,13 +30,13 @@ main() {
       m) RES_MEMORY="${OPTARG}" ;;
       t) RES_TIME="${OPTARG}" ;;
       v) RES_VMEMORY="${OPTARG}" ;;
-      \?) echo "Unknown option: -$OPTARG" >&2; usage; exit 1 ;;
+      \?) echo "${name}: unknown option: -$OPTARG" >&2; usage; exit 1 ;;
     esac
   done
   shift $((${OPTIND}-1))
 
   if [[ $# -eq 0 ]]; then
-    echo "Nothing to submit."
+    echo "${name}: nothing to submit."
     exit 0
   fi
 
@@ -49,17 +50,17 @@ main() {
   fi
 
   if  [[ ! -e "${cmd_file}" ]]; then
-    echo "'${cmd_file}' does not exist." 1>&2
+    echo "${name}: file does not exist: ${cmd_file}" 1>&2
     exit 1
   fi
 
   if  [[ ! -r "${cmd_file}" ]]; then
-    echo "Cannot read '${cmd_file}'." 1>&2
+    echo "${name}: cannot read file: ${cmd_file}" 1>&2
     exit 1
   fi
 
   if  [[ ! -s "${cmd_file}" ]]; then
-    echo "'${cmd_file}' is empty."
+    echo "${name}: file is empty: ${cmd_file}"
     exit 0
   fi
 

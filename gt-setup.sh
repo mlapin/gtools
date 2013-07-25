@@ -15,9 +15,12 @@ if [[ -z "${QSUB_OPT}" ]]; then
   QSUB_OPT=(-notify -r y -V -l h_rt=14400,h_vmem=6G,mem_free=1G)
 fi
 
-# Maximum number of attempts to (re-)submit a command
+# Maximum number of attempts to execute a command
 # (default is 2, i.e. resubmit once in case of failure)
 MAX_ATTEMPTS="${MAX_ATTEMPTS:-2}"
+
+# Path to the config file
+CONFIG_FILE="${CONFIG_FILE:-"$HOME/.gtrc"}"
 
 # Path to the scratch folder (temporary storage)
 SCRATCH_DIR="${SCRATCH_DIR:-"/scratch/BS/pool1/.gtools"}"
@@ -41,7 +44,7 @@ RET_RESUB="${RET_RESUB:-99}"
 RET_STOP="${RET_STOP:-100}"
 
 # Timeout delays
-TIMEOUT_OFFSET=10 # subtract this amount (seconds) from the actual timeout
+TIMEOUT_OFFSET=10 # subtract this amount (in seconds) from the actual timeout
 TIMEOUT_KILL_DELAY=1 # wait this amount (seconds) before sending KILL
 
 # Job and task IDs
@@ -51,7 +54,7 @@ TID="${TID:-${SGE_TASK_ID}}"
 
 
 qsubmit() {
-  if [[ "${VERBOSE}" -gt 0 || -n "${DRY_RUN}" ]]; then
+  if [[ -n "${VERBOSE}" || -n "${DRY_RUN}" ]]; then
     echo "${SUBMIT_CMD}" -b y -terse "$@"
   fi
   JOB_ID=$(run_on_submit_host "${SUBMIT_CMD}" -b y -terse "$@" |
@@ -76,6 +79,15 @@ update_meta() {
 
 read_meta() {
   TIMEOUT=$(<"${SCRATCH_DIR}/${JOB_ID}/.meta")
+}
+
+read_config() {
+  if [[ -s "${CONFIG_FILE}" ]]; then
+    . "${CONFIG_FILE}" "$@"
+    verbose "loaded config: ${CONFIG_FILE}"
+  else
+    verbose "config file is empty or does not exist: ${CONFIG_FILE}"
+  fi
 }
 
 update_qsub_opt() {
@@ -132,7 +144,7 @@ log_error() {
 }
 
 verbose() {
-  if [[ "${VERBOSE}" -gt 0 ]]; then
+  if [[ -n "${VERBOSE}" ]]; then
     echo "$1"
     if [[ $# -gt 1 ]]; then
       print_args "${@:2}"

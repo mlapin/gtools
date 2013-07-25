@@ -6,16 +6,17 @@ set -o pipefail
 GT_NAME="${0##*/}"
 
 # Enable debug mode
-if [[ "${DEBUG}" = "yes" ]]; then
+if [[ -n "${DEBUG}" ]]; then
   set -x
 fi
 
 usage() {
   cat <<EOF
-usage: ${GT_NAME} [--version] [--help] [--verbose] [--dry-run]
+usage: ${GT_NAME} [--version] [--help] [--config <path>] [--dry-run] [--verbose]
           <command> [<args>]
 
 Commands:
+   init       Create a config file
    cmd        Submit a single command
    file       Submit a set of commands listed in a file
 
@@ -58,28 +59,35 @@ main() {
   LOCAL_DIR="${abspath%/*}" # used in the setup script
   . "${LOCAL_DIR}/gt-setup.sh"
 
+  read_config "$@"
+
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --version)
+        echo "${GT_NAME}: gtools version ${VERSION}"
+        break
+        ;;
       --help|help)
         shift
         help "$@"
         break
         ;;
-      --version)
-        echo "${GT_NAME}: gtools version ${VERSION}"
-        break
-        ;;
-      --verbose)
-        VERBOSE=1
+      --conf*)
+        shift
+        CONFIG_FILE="$1"
+        read_config "$@" # re-read the config
         ;;
       --dry*)
         DRY_RUN=1
+        ;;
+      --verbose)
+        VERBOSE=1
         ;;
       *)
         if [[ -e "${LOCAL_DIR}/gt-$1.sh" ]]; then
           local cmd="$1"
           shift
-          verbose "executing ${LOCAL_DIR}/gt-${cmd}.sh"
+          verbose "executing: ${LOCAL_DIR}/gt-${cmd}.sh"
           . "${LOCAL_DIR}/gt-${cmd}.sh" "$@"
           break
         else

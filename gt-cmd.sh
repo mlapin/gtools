@@ -1,8 +1,9 @@
 #!/bin/bash
 #
-# Submit a single command
+# Submits a single command
 set -e
 set -o pipefail
+name="${GT_NAME}-cmd"
 
 usage() {
   cat <<EOF
@@ -26,7 +27,7 @@ main() {
       m) RES_MEMORY="${OPTARG}" ;;
       t) RES_TIME="${OPTARG}" ;;
       v) RES_VMEMORY="${OPTARG}" ;;
-      \?) echo "Unknown option: -$OPTARG" >&2; usage; exit 1 ;;
+      \?) echo "${name}: unknown option: -$OPTARG" >&2; usage; exit 1 ;;
     esac
   done
   shift $((${OPTIND}-1))
@@ -41,7 +42,7 @@ main() {
   done
 
   if [[ ${#cmd_args[@]} -eq 0 ]]; then
-    echo "Nothing to submit."
+    echo "${name}: nothing to submit."
     exit 0
   fi
 

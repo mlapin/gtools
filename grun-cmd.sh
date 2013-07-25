@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Execute a command
+# Executes a command
 set -e
 set -o pipefail
 
