@@ -46,7 +46,7 @@ abspath="$(readlink -f "$0")"
 LOCAL_DIR="${abspath%/*}" # used in the setup script
 . "${LOCAL_DIR}/gtools-setup.sh"
 
-if [[ -z "$1" ]] ; then
+if [[ -z "$1" ]]; then
   usage
   exit 1
 fi
@@ -63,7 +63,7 @@ while [[ $# -gt 0 ]]; do
       . "${LOCAL_DIR}/gsub-file.sh" "$@"
       break
       ;;
-    help|--help|-h)
+    help|--help|-h*)
       shift
       help "$@"
       break

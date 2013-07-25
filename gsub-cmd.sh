@@ -21,9 +21,9 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-if [[ ${#cmd_args[@]} -eq 0 ]] ; then
+if [[ ${#cmd_args[@]} -eq 0 ]]; then
   exit 0
 fi
 
-qsubmit -N "${cmd_args[0]}" ${QSUB_OPT} "$@" -b y \
+qsubmit -N "${cmd_args[0]}" ${QSUB_OPT} "$@"  \
 "${LOCAL_DIR}/grun-cmd.sh" "${MAX_ATTEMPTS}" "${cmd_args[@]}"

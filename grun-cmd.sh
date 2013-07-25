@@ -3,13 +3,14 @@
 # Execute a command
 set -e
 
+. "${0%/*}/gtools-setup.sh"
+
 MAX_ATTEMPTS="$1"
 shift
 
-$@ || {
-  abspath="$(readlink -f "$0")"
-  LOCAL_DIR="${abspath%/*}" # used in the setup script
-  . "${LOCAL_DIR}/gtools-setup.sh"
+read_meta
+
+timeout -k "${TIMEOUT_KILL_DELAY}" "${TIMEOUT}" "${@}" || {
   command_failed "$@"
   exit "$?"
 }

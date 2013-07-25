@@ -20,7 +20,7 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-if [[ $# -eq 0 ]] ; then
+if [[ $# -eq 0 ]]; then
   exit 0
 fi
 
@@ -30,21 +30,21 @@ cmd_name="${cmd_file##*/}"
 
 shift
 
-if [[ "$1" = "--" ]] ; then
+if [[ "$1" = "--" ]]; then
   shift
 fi
 
-if  [[ ! -e "${cmd_file}" ]] ; then
+if  [[ ! -e "${cmd_file}" ]]; then
   echo "'${cmd_file}' does not exist." 1>&2
   exit 1
 fi
 
-if  [[ ! -r "${cmd_file}" ]] ; then
+if  [[ ! -r "${cmd_file}" ]]; then
   echo "'${cmd_file}' is not readable." 1>&2
   exit 1
 fi
 
-if  [[ ! -s "${cmd_file}" ]] ; then
+if  [[ ! -s "${cmd_file}" ]]; then
   echo "'${cmd_file}' is empty."
   exit 0
 fi
@@ -55,5 +55,5 @@ fi
 
 total=$(wc -l "${cmd_file}" | cut -f1 -d' ')
 
-qsubmit -N "${cmd_name}" ${QSUB_OPT} -t "1-${total}:${step}" "$@" -b y \
+qsubmit -N "${cmd_name}" ${QSUB_OPT} -t "1-${total}:${step}" "$@" \
 "${LOCAL_DIR}/grun-file.sh" "${cmd_file}" "${step}" "${MAX_ATTEMPTS}"
