@@ -2,8 +2,9 @@
 #
 # Execute a command
 set -e
+set -o pipefail
 
-. "${0%/*}/gtools-setup.sh"
+. "${0%/*}/gt-setup.sh"
 
 MAX_ATTEMPTS="$1"
 shift

@@ -1,0 +1,27 @@
+gt-cmd(1)
+===========
+
+NAME
+----
+gt-cmd - submit a single command
+
+SYNOPSIS
+--------
+[verse]
+'gt cmd' <command> [<args>...] [-- <qsub args>...]
+
+DESCRIPTION
+-----------
+TODO
+
+EXAMPLES
+--------
+TODO
+
+AUTHOR
+------
+Maksim Lapin <mlapin@mpi-inf.mpg.de>
+
+SEE ALSO
+--------
+**gt**(1), **gt-file**(1).

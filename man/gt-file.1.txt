@@ -1,0 +1,27 @@
+gt-file(1)
+============
+
+NAME
+----
+gt-file - submit an array of commands listed in a file
+
+SYNOPSIS
+--------
+[verse]
+'gt file' [-g <size>] <file> [--] [<qsub args>...]
+
+DESCRIPTION
+-----------
+TODO
+
+EXAMPLES
+--------
+TODO
+
+AUTHOR
+------
+Maksim Lapin <mlapin@mpi-inf.mpg.de>
+
+SEE ALSO
+--------
+**gt**(1), **gt-cmd**(1)

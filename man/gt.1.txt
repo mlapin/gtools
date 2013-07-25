@@ -1,0 +1,35 @@
+gt(1)
+=======
+
+NAME
+----
+gt - grid engine tools
+
+SYNOPSIS
+--------
+[verse]
+'gt' [--version] [--help] <command> [<args>]
+
+DESCRIPTION
+-----------
+TODO
+
+OPTIONS
+-------
+*--version*::
+    Prints the **gtools** suite version.
+
+*-h, --help*::
+    Prints the synopsis and a list of commands.
+
+EXAMPLES
+--------
+TODO
+
+AUTHOR
+------
+Maksim Lapin <mlapin@mpi-inf.mpg.de>
+
+SEE ALSO
+--------
+**gt-cmd**(1), **gt-file**(1)
