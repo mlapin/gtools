@@ -1,0 +1,27 @@
+gt-stat(1)
+===========
+
+NAME
+----
+gt-stat - shows the status of Grid Engine jobs and queues
+
+SYNOPSIS
+--------
+[verse]
+'gt stat' stat [<command> | <qstat options>]
+
+DESCRIPTION
+-----------
+TODO
+
+EXAMPLES
+--------
+TODO
+
+AUTHOR
+------
+Maksim Lapin <mlapin@mpi-inf.mpg.de>
+
+SEE ALSO
+--------
+**gt**(1), **gt-file**(1).

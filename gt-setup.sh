@@ -55,13 +55,20 @@ TID="${TID:-${SGE_TASK_ID}}"
 
 qsubmit() {
   if [[ -n "${VERBOSE}" || -n "${DRY_RUN}" ]]; then
-    echo "${SUBMIT_CMD}" -b y -terse "$@"
+    echo "${SUBMIT_CMD}" -b y -terse "$@" 1>&2
   fi
   JOB_ID=$(run_on_submit_host "${SUBMIT_CMD}" -b y -terse "$@" |
-    sed -n -e 's/^\([0-9]\+\).*/\1/p') || exit "$?"
+    sed -n -e 's/^\([0-9]\+\).*/\1/p')
   verbose "job id: ${JOB_ID}"
   update_meta
   echo "${JOB_ID}"
+}
+
+qstatus() {
+  if [[ -n "${VERBOSE}" || -n "${DRY_RUN}" ]]; then
+    echo "${STAT_CMD}" "$@" 1>&2
+  fi
+  run_on_submit_host "${STAT_CMD}" "$@"
 }
 
 update_meta() {
@@ -109,6 +116,7 @@ update_qsub_opt() {
 
 run_on_submit_host() {
   if [[ -n "${DRY_RUN}" ]]; then
+    echo "Dry run: command not executed." 1>&2
     exit 1
   else
     # If there is no qsub, ssh to a submit host and run there
@@ -145,7 +153,7 @@ log_error() {
 
 verbose() {
   if [[ -n "${VERBOSE}" ]]; then
-    echo "$1"
+    echo "$1" 1>&2
     if [[ $# -gt 1 ]]; then
       print_args "${@:2}"
     fi
@@ -153,5 +161,5 @@ verbose() {
 }
 
 print_args() {
-  for i in "$@"; do echo "  [$i]"; done
+  for i in "$@"; do echo "  [$i]" 1>&2; done
 }

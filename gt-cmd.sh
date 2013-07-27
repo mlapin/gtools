@@ -7,7 +7,7 @@ name="${GT_NAME}-cmd"
 
 usage() {
   cat <<EOF
-usage: ${GT_NAME} cmd [options] <command> [<args>] [-- <qsub options>]
+usage: ${GT_NAME} cmd [--help] [options] <command> [<args>] [-- <qsub options>]
 
     -a <N>    make N attempts (resubmit up to N-1 times if command fails)
     -t <T>    require h_rt=T (example: -t 00:30:00 or -t 1800)
@@ -20,6 +20,11 @@ EOF
 
 main() {
   verbose "arguments (before parsing):" "$@"
+
+  if [[ "$1" = 'help' || "$1" = '--help' ]]; then
+    help "cmd"
+    exit 0
+  fi
 
   while getopts ":a:t:m:v:" opt; do
     case "${opt}" in
@@ -43,7 +48,8 @@ main() {
 
   if [[ ${#cmd_args[@]} -eq 0 ]]; then
     echo "${name}: nothing to submit."
-    exit 0
+    usage
+    exit 1
   fi
 
   update_qsub_opt "$@"

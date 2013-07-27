@@ -7,7 +7,7 @@ name="${GT_NAME}-file"
 
 usage() {
   cat <<EOF
-usage: ${GT_NAME} file [options] <file> [-- <qsub options>]
+usage: ${GT_NAME} file [--help] [options] <file> [-- <qsub options>]
 
     -g <N>    group commands into batches (N lines per group, default: N=1)
               use '-g all' to submit all commands in a single batch
@@ -23,6 +23,11 @@ EOF
 main() {
   verbose "arguments (before parsing):" "$@"
 
+  if [[ "$1" = 'help' || "$1" = '--help' ]]; then
+    help "file"
+    exit 0
+  fi
+
   while getopts ":g:a:t:m:v:" opt; do
     case "${opt}" in
       g) step="${OPTARG}" ;;
@@ -37,7 +42,8 @@ main() {
 
   if [[ $# -eq 0 ]]; then
     echo "${name}: nothing to submit."
-    exit 0
+    usage
+    exit 1
   fi
 
   step="${step:-1}"
