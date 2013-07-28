@@ -1,7 +1,7 @@
 #!/usr/bin/gawk -f
 #
-# Shows aggregate counts of jobs/tasks over all users
-function report(total, count, title, flag, dat) {
+# Show aggregate counts of jobs/tasks over all users
+function report(total, count, title, color, flag, dat) {
   if (total > 0) {
     # Create a tmp multidimensional array for sorting by key
     delete data
@@ -13,15 +13,16 @@ function report(total, count, title, flag, dat) {
       }
     }
     n = asorti(data, sorted);
-    printf("%s%s (%d):%s\n", fbold, title, total, fnorm);
+    printf("%s%s%s (%d)%s:%s\n",
+      color, FONT_UL_ON, title, total, FONT_UL_OFF, FONT_NORM);
     for (i = n; i >= 1; i--) {
       split(sorted[i], row, SUBSEP)
       if (flag == 1) {
-        printf("%7d %-10s %s\n", row[3], row[2], row[1]);
+        printf("%7d %-12s %.5f\n", row[3], row[2], row[1]);
       } else if (flag == 2) {
-        printf("%7d %-10s %4.1f%%\n", row[1], row[2], 100*row[1]/total);
+        printf("%7d %-12s %4.1f%%\n", row[1], row[2], 100*row[1]/total);
       } else {
-        printf("%7d %-10s\n", row[1], row[2]);
+        printf("%7d %-12s\n", row[1], row[2]);
       }
     }
     print ""
@@ -33,27 +34,30 @@ BEGIN {
   e_total = 0;
   o_total = 0;
 }
-{
-  if ($5 ~ /r|t/) {
-    r_count[$4]++;
+NR > 2 {
+  # any field after $2 is not safe since job names may contain spaces
+  user = substr($0, 28, 12)
+  stat = substr($0, 41, 5);
+  if (stat ~ STAT_RUNNING) {
+    r_count[user]++;
     r_total++;
-  } else if ($5 ~ /E/) {
-    e_count[$4]++;
+  } else if (stat ~ STAT_ERROR) {
+    e_count[user]++;
     e_total++;
-  } else if ($5 ~ /w|h|Rq/) {
-    if (w_total == 0 || w_prio[$4] < $2) {
-      w_prio[$4] = $2;
+  } else if (stat ~ STAT_WAITING) {
+    if (w_total == 0 || w_prio[user] < $2) {
+      w_prio[user] = $2;
     }
-    w_count[$4]++;
+    w_count[user]++;
     w_total++;
   } else {
-    o_count[$4]++;
+    o_count[user]++;
     o_total++;
   }
 }
 END {
-  report(r_total, r_count, "Running tasks", 2);
-  report(w_total, w_count, "Pending jobs", 1, w_prio);
-  report(e_total, e_count, "Failed jobs");
-  report(o_total, o_count, "Other jobs");
+  report(r_total, r_count, "Running jobs", FONT_GREEN, 2);
+  report(w_total, w_count, "Pending jobs", FONT_YELLOW, 1, w_prio);
+  report(e_total, e_count, "Failed jobs", FONT_RED);
+  report(o_total, o_count, "Other jobs", FONT_BLUE);
 }

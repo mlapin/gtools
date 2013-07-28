@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Submits a single command
+# Submit a single command
 set -e
 set -o pipefail
 name="${GT_NAME}-cmd"
@@ -14,7 +14,7 @@ usage: ${GT_NAME} cmd [--help] [options] <command> [<args>] [-- <qsub options>]
     -m <M>    require mem_free=M (example: -m 1G)
     -v <M>    require h_vmem=M (example: -v 6G)
 
-See 'man qsub' for qsub options.
+See \`man qsub' for qsub options.
 EOF
 }
 
@@ -22,7 +22,7 @@ main() {
   verbose "arguments (before parsing):" "$@"
 
   if [[ "$1" = 'help' || "$1" = '--help' ]]; then
-    help "cmd"
+    show_help "cmd"
     exit 0
   fi
 

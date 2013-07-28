@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Creates a config file
+# Create a config file
 set -e
 set -o pipefail
 name="${GT_NAME}-init"
@@ -15,6 +15,11 @@ EOF
 
 main() {
   verbose "arguments (before parsing):" "$@"
+
+  if [[ "$1" = 'help' || "$1" = '--help' ]]; then
+    show_help "init"
+    exit 0
+  fi
 
   while getopts ":f" opt; do
     case "${opt}" in
@@ -44,9 +49,6 @@ QSUB_OPT=(${QSUB_OPT[@]})
 
 # Maximum number of attempts to execute a command
 MAX_ATTEMPTS=${MAX_ATTEMPTS}
-
-# Path to the config file
-CONFIG_FILE='${CONFIG_FILE}'
 
 # Path to the scratch folder (temporary storage)
 SCRATCH_DIR='${SCRATCH_DIR}'

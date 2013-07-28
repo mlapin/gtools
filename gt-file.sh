@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Submits a set of commands listed in a file
+# Submit a set of commands listed in a file
 set -e
 set -o pipefail
 name="${GT_NAME}-file"
@@ -16,7 +16,7 @@ usage: ${GT_NAME} file [--help] [options] <file> [-- <qsub options>]
     -m <M>    require mem_free=M (example: -m 1G)
     -v <M>    require h_vmem=M (example: -v 6G)
 
-See 'man qsub' for qsub options.
+See \`man qsub' for qsub options.
 EOF
 }
 
@@ -24,7 +24,7 @@ main() {
   verbose "arguments (before parsing):" "$@"
 
   if [[ "$1" = 'help' || "$1" = '--help' ]]; then
-    help "file"
+    show_help "file"
     exit 0
   fi
 

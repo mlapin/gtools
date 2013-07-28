@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Defines common constants, functions, and default values
+# Define common constants, functions, and default values
 set -e
 set -o pipefail
 readonly VERSION=0.1
@@ -32,6 +32,8 @@ LOCAL_DIR="${LOCAL_DIR:-"${0%/*}"}"
 MAN_DIR="${LOCAL_DIR:-"$PWD"}/man"
 
 # Grid engine commands and hooks
+DEL_CMD="${DEL_CMD:-"qdel"}"
+MOD_CMD="${MOD_CMD:-"qmod"}"
 STAT_CMD="${STAT_CMD:-"qstat"}"
 SUBMIT_CMD="${SUBMIT_CMD:-"qsub"}"
 SUBMIT_HOST="${SUBMIT_HOST:-"submit-squeeze"}"
@@ -43,9 +45,14 @@ PRE_HOOK="${PRE_HOOK:-"source /n1_grid/current/inf/common/settings.sh"}"
 RET_RESUB="${RET_RESUB:-99}"
 RET_STOP="${RET_STOP:-100}"
 
-# Timeout delays
+# Timeout delays (allows the wrapper script to exit gracefully)
 TIMEOUT_OFFSET=10 # subtract this amount (in seconds) from the actual timeout
 TIMEOUT_KILL_DELAY=1 # wait this amount (seconds) before sending KILL
+
+# Job statuses (regex for matching qstat output in gawk)
+STAT_RUNNING="${STAT_RUNNING:-"r|t"}"
+STAT_WAITING="${STAT_WAITING:-"w|h|Rq"}"
+STAT_ERROR="${STAT_ERROR:-"E"}"
 
 # Job and task IDs
 JOB_ID="${JOB_ID:-1}"
@@ -69,6 +76,20 @@ qstatus() {
     echo "${STAT_CMD}" "$@" 1>&2
   fi
   run_on_submit_host "${STAT_CMD}" "$@"
+}
+
+qresubmit() {
+  if [[ -n "${VERBOSE}" || -n "${DRY_RUN}" ]]; then
+    echo "${MOD_CMD}" -cj "$@" 1>&2
+  fi
+  run_on_submit_host "${MOD_CMD}" -cj "$@"
+}
+
+qdelete() {
+  if [[ -n "${VERBOSE}" || -n "${DRY_RUN}" ]]; then
+    echo "${DEL_CMD}" "$@" 1>&2
+  fi
+  run_on_submit_host "${DEL_CMD}" "$@"
 }
 
 update_meta() {
@@ -116,7 +137,7 @@ update_qsub_opt() {
 
 run_on_submit_host() {
   if [[ -n "${DRY_RUN}" ]]; then
-    echo "Dry run: command not executed." 1>&2
+    echo "dry run: command not executed." 1>&2
     exit 1
   else
     # If there is no qsub, ssh to a submit host and run there
