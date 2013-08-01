@@ -37,7 +37,7 @@ delete_all() {
 
 delete_failed() {
   # Get job ids of failed jobs (in error state)
-  myjobs=$(qstatus -u "${USER}" | gawk --posix '/^.{40,45}E/{print $1}')
+  myjobs=$(qstatus -u "${USER}" | gawk --re-interval '/^.{40,45}E/{print $1}')
 
   verbose "${myjobs}"
 

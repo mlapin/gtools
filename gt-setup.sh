@@ -50,9 +50,9 @@ TIMEOUT_OFFSET=10 # subtract this amount (in seconds) from the actual timeout
 TIMEOUT_KILL_DELAY=1 # wait this amount (seconds) before sending KILL
 
 # Job statuses (regex for matching qstat output in gawk)
-STAT_RUNNING="${STAT_RUNNING:-"r|t"}"
-STAT_WAITING="${STAT_WAITING:-"w|h|Rq"}"
-STAT_ERROR="${STAT_ERROR:-"E"}"
+STAT_RUNNING="${STAT_RUNNING:-"/[rt]/"}"
+STAT_WAITING="${STAT_WAITING:-"/[hw]/"}"
+STAT_ERROR="${STAT_ERROR:-"/[E]/"}"
 
 # Job and task IDs
 JOB_ID="${JOB_ID:-1}"

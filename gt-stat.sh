@@ -18,16 +18,11 @@ EOF
 }
 
 show_my() {
-  # 1st call to qstat (get an overview):
   # Collect user job ids, count running tasks, and group jobs by status
-  verbose "executing: ${LOCAL_DIR}/gt-stat-my-all.awk"
-  myjobs=$(qstatus -u "${USER}" \
-    | gawk -f "${LOCAL_DIR}/gt-stat-my-all.awk" \
-    -v STAT_RUNNING="${STAT_RUNNING}" -v STAT_WAITING="${STAT_WAITING}" \
-    -v STAT_ERROR="${STAT_ERROR}")
-
+  myjobs=$(get_my_jobs)
   verbose "${myjobs}"
 
+  # Exit if there are no submitted jobs
   if [[ -z "${myjobs}" ]]; then
     echo "${name}: ${USER} has no submitted jobs"
     echo "  (use \`${GT_NAME} help cmd' or \`${GT_NAME} help file' to learn \
@@ -38,19 +33,10 @@ how to submit a job)"
   # Get the list of job ids from the first line
   read -r jobids <<< "${myjobs}"
 
-  # 2nd call to qstat (get job details): name, requested resources, etc.
-  details=$(qstatus -j "${jobids}")
+  # Collect and display formatted job details
+  show_my_details
 
-  # Parse qstat output and display formatted job details
-  # Previous output is appended at the end
-  verbose "executing: ${LOCAL_DIR}/gt-stat-my-details.awk"
-  gawk -f "${LOCAL_DIR}/gt-stat-my-details.awk" \
-    -v FONT_BOLD="${FONT_BOLD}" -v FONT_NORM="${FONT_NORM}" \
-    -v FONT_UL_ON="${FONT_UL_ON}" -v FONT_UL_OFF="${FONT_UL_OFF}" \
-    -v FONT_RED="${FONT_RED}" -v FONT_GREEN="${FONT_GREEN}" \
-    -v FONT_YELLOW="${FONT_YELLOW}" -v FONT_BLUE="${FONT_BLUE}" \
-    <<< "${details}"$'\n<<<end>>>\n'"${myjobs}"
-
+  # Show suggestions if there are failed jobs
   if [[ "${myjobs}" =~ .*error.* ]]; then
     echo "  (use \`${GT_NAME} resub' to resubmit failed jobs \
 once the problem is fixed)"
@@ -58,19 +44,108 @@ once the problem is fixed)"
   fi
 }
 
-show_all() {
-  # Count jobs over all users grouped by status
-  # Display formatted overview
-  verbose "executing: ${LOCAL_DIR}/gt-stat-all.awk"
-  qstatus -u '*' | gawk -f "${LOCAL_DIR}/gt-stat-all.awk" \
-    -v STAT_RUNNING="${STAT_RUNNING}" -v STAT_WAITING="${STAT_WAITING}" \
-    -v STAT_ERROR="${STAT_ERROR}" \
-    -v FONT_BOLD="${FONT_BOLD}" -v FONT_NORM="${FONT_NORM}" \
-    -v FONT_UL_ON="${FONT_UL_ON}" -v FONT_UL_OFF="${FONT_UL_OFF}" \
-    -v FONT_RED="${FONT_RED}" -v FONT_GREEN="${FONT_GREEN}" \
-    -v FONT_YELLOW="${FONT_YELLOW}" -v FONT_BLUE="${FONT_BLUE}"
+get_my_jobs() {
+  qstatus -u "${USER}" \
+    | gawk \
+    'function print_sorted(jobs, title) {
+      print title
+      n = asorti(jobs, sorted)
+      for (i = n; i >= 1; i--) print jobs[sorted[i]]
+    }
+    NR <= 2 { next }
+    { t = r + e + w
+      status = substr($0, 41, 5)
+      common = substr($0, 1, 16) status
+      rest = substr($0, 104) }
+    status ~ '"${STAT_RUNNING}"' { r++; rc[$1]++; rj[$1] = common rc[$1] }
+    status ~ '"${STAT_ERROR}"' { e++; ej[$1] = common rest }
+    status ~ '"${STAT_WAITING}"' { w++; wj[$1] = common rest }
+    t == r + e + w { o++; oj[$1] = common rest }
+    END {
+      if (r) for (j in rj) printf("%d,", j)
+      if (w) for (j in wj) printf("%d,", j)
+      if (e) for (j in ej) printf("%d,", j)
+      if (o) for (j in oj) printf("%d,", j)
+      if (t + o > 0) print ""
+      if (r) print_sorted(rj, "running")
+      if (w) print_sorted(wj, "waiting")
+      if (e) print_sorted(ej, "error")
+      if (o) print_sorted(oj, "other")
+    }'
+}
 
-  # Display overall cluster summary as well
+show_my_details() {
+  details=$(qstatus -j "${jobids}")
+  gawk \
+    'function print_title(title, color) {
+      printf("%s'"${FONT_UL_ON}"'%s'"${FONT_UL_OFF}:${FONT_NORM}"'\n",
+        color, title)
+    }
+    /^job_number:/ { job = $2 }
+    /^submission_time:/ { time[job] = substr($0, 29) }
+    /^hard resource_list:/ { res[job] = substr($0, 29) }
+    /^job_name:/ { name[job] = substr($0, 29) }
+    /^job-array tasks:/ { tasks[job] = substr($0, 29) }
+    /^<<<end>>>$/ { report = 1 }
+    /^running$/ { print_title("Running jobs", "'"${FONT_GREEN}"'") }
+    /^waiting$/ { print_title("Pending jobs", "'"${FONT_YELLOW}"'") }
+    /^error$/ { print_title("Failed jobs", "'"${FONT_RED}"'") }
+    /^other$/ { print_title("Other jobs", "'"${FONT_BLUE}"'") }
+    /^[0-9]+ / { if (report) {
+      printf("%s %s %-5s %10s `'"${FONT_BOLD}"'%s'"${FONT_NORM}'"' %s\n",
+        $1, $2, $3, tasks[$1], name[$1], $4);
+      printf("%7s %s %s\n", "", time[$1], res[$1]);
+      print ""
+    }}' <<< "${details}"$'\n<<<end>>>\n'"${myjobs}"
+}
+
+show_all() {
+  # Display job/task counts over all users grouped by job status
+  # (a temporary multidimensional array is created for sorting by key)
+  qstatus -u '*' \
+    | gawk \
+    'function report(total, count, title, color, report_type, prio) {
+      if (total > 0) {
+        delete data
+        for (user in count) {
+          if (report_type == 2)
+            data[prio[user], user, count[user]] = 0
+          else
+            data[sprintf("%20s", count[user]), user] = 0
+        }
+        n = asorti(data, sorted);
+        printf("%s'"${FONT_UL_ON}"'%s (%d)'"${FONT_UL_OFF}:${FONT_NORM}"'\n",
+          color, title, total)
+        for (i = n; i >= 1; i--) {
+          split(sorted[i], row, SUBSEP)
+          if (report_type == 2)
+            printf("%7d %-12s %.5f\n", row[3], row[2], row[1]);
+          else if (report_type == 1)
+            printf("%7d %-12s %4.1f%%\n", row[1], row[2], 100*row[1]/total);
+          else
+            printf("%7d %-12s\n", row[1], row[2]);
+        }
+        print ""
+      }
+    }
+    NR <= 2 { next }
+    { t = r + e + w
+      user = substr($0, 28, 12)
+      status = substr($0, 41, 5) }
+    status ~ '"${STAT_RUNNING}"' { r++; rc[user]++ }
+    status ~ '"${STAT_ERROR}"' { e++; ec[user]++ }
+    status ~ '"${STAT_WAITING}"' { w++; wc[user]++
+      if (w == 1 || wp[user] < $2) wp[user] = $2
+    }
+    t == r + e + w { o++; oc[user]++ }
+    END {
+      report(r, rc, "Running jobs", "'"${FONT_GREEN}"'", 1)
+      report(w, wc, "Pending jobs", "'"${FONT_YELLOW}"'", 2, wp)
+      report(e, ec, "Failed jobs", "'"${FONT_RED}"'")
+      report(o, oc, "Other jobs", "'"${FONT_BLUE}"'")
+    }'
+
+  # Display overall cluster summary
   if [[ "$1" != '--no-summary' ]]; then
     qstatus -g c
   fi
