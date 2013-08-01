@@ -12,7 +12,7 @@ readonly VERSION=0.1
 
 # Default qsub options (see 'man qsub')
 if [[ -z "${QSUB_OPT}" ]]; then
-  QSUB_OPT=(-notify -r y -V -l h_rt=14400,h_vmem=6G,mem_free=1G)
+  QSUB_OPT=(-cwd -V -notify -r y -l h_rt=14400,h_vmem=6G,mem_free=1G)
 fi
 
 # Maximum number of attempts to execute a command
@@ -23,7 +23,7 @@ MAX_ATTEMPTS="${MAX_ATTEMPTS:-2}"
 CONFIG_FILE="${CONFIG_FILE:-"$HOME/.gtrc"}"
 
 # Path to the scratch folder (temporary storage)
-SCRATCH_DIR="${SCRATCH_DIR:-"/scratch/BS/pool1/.gtools"}"
+SCRATCH_DIR="${SCRATCH_DIR:-"/scratch/common/pool0/.gtools"}"
 
 # Path to the folder with the gtools scripts
 LOCAL_DIR="${LOCAL_DIR:-"${0%/*}"}"
@@ -37,7 +37,8 @@ MOD_CMD="${MOD_CMD:-"qmod"}"
 STAT_CMD="${STAT_CMD:-"qstat"}"
 SUBMIT_CMD="${SUBMIT_CMD:-"qsub"}"
 SUBMIT_HOST="${SUBMIT_HOST:-"submit-squeeze"}"
-PRE_HOOK="${PRE_HOOK:-"source /n1_grid/current/inf/common/settings.sh"}"
+PRE_HOOK="${PRE_HOOK:-"cd '${PWD}' && \
+source /n1_grid/current/inf/common/settings.sh"}"
 
 ################################################################################
 

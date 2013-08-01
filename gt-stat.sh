@@ -7,17 +7,34 @@ name="${GT_NAME}-stat"
 
 usage() {
   cat <<EOF
-usage: ${GT_NAME} stat [--help] [<command> | <qstat options>]
+usage: ${GT_NAME} stat [--help] [<command> [options] | <qstat options>]
 
 Commands:
-   my         Show detailed user jobs summary
-   all        Show cluster summary (all users)
+    my        Show detailed user jobs summary (default)
+    all       Show cluster summary over all users
+
+\`my' options:
+    -r        display the requested resources (default)
+    -w        display the working directory
+
+\`all' options:
+    -s        skip the cluster summary at the end
 
 See \`man qstat' for qstat options.
 EOF
 }
 
 show_my() {
+  SHOW_FIELD='res'
+  while getopts ":rw" opt; do
+    case "${opt}" in
+      r) SHOW_FIELD='res' ;;
+      w) SHOW_FIELD='cwd' ;;
+      \?) echo "${name}: unknown option: -$OPTARG" >&2; usage; exit 1 ;;
+    esac
+  done
+  shift $((${OPTIND}-1))
+
   # Collect user job ids, count running tasks, and group jobs by status
   myjobs=$(get_my_jobs)
   verbose "${myjobs}"
@@ -66,7 +83,7 @@ get_my_jobs() {
       if (w) for (j in wj) printf("%d,", j)
       if (e) for (j in ej) printf("%d,", j)
       if (o) for (j in oj) printf("%d,", j)
-      if (t + o > 0) print ""
+      if (r + w + e + o > 0) print ""
       if (r) print_sorted(rj, "running")
       if (w) print_sorted(wj, "waiting")
       if (e) print_sorted(ej, "error")
@@ -83,6 +100,7 @@ show_my_details() {
     }
     /^job_number:/ { job = $2 }
     /^submission_time:/ { time[job] = substr($0, 29) }
+    /^cwd:/ { cwd[job] = substr($0, 29) }
     /^hard resource_list:/ { res[job] = substr($0, 29) }
     /^job_name:/ { name[job] = substr($0, 29) }
     /^job-array tasks:/ { tasks[job] = substr($0, 29) }
@@ -94,12 +112,20 @@ show_my_details() {
     /^[0-9]+ / { if (report) {
       printf("%s %s %-5s %10s `'"${FONT_BOLD}"'%s'"${FONT_NORM}'"' %s\n",
         $1, $2, $3, tasks[$1], name[$1], $4);
-      printf("%7s %s %s\n", "", time[$1], res[$1]);
+      printf("%7s %s %s\n", "", time[$1], '"${SHOW_FIELD}"'[$1]);
       print ""
     }}' <<< "${details}"$'\n<<<end>>>\n'"${myjobs}"
 }
 
 show_all() {
+  while getopts ":s" opt; do
+    case "${opt}" in
+      s) SKIP_SUMMARY=1 ;;
+      \?) echo "${name}: unknown option: -$OPTARG" >&2; usage; exit 1 ;;
+    esac
+  done
+  shift $((${OPTIND}-1))
+
   # Display job/task counts over all users grouped by job status
   # (a temporary multidimensional array is created for sorting by key)
   qstatus -u '*' \
@@ -146,7 +172,7 @@ show_all() {
     }'
 
   # Display overall cluster summary
-  if [[ "$1" != '--no-summary' ]]; then
+  if [[ -z "${SKIP_SUMMARY}" ]]; then
     qstatus -g c
   fi
 }

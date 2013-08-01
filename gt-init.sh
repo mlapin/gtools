@@ -9,7 +9,7 @@ usage() {
   cat <<EOF
 usage: ${GT_NAME} init [options]
 
-    -f    overwrite an existing file (if any)
+    -f    overwrite the config file if it already exists
 EOF
 }
 
@@ -33,28 +33,55 @@ main() {
     "force: ${FORCE}" \
     "config file: ${CONFIG_FILE}"
 
+  set +e
+
+  echo "${name}: verifying that grid engine commands are available..."
+  qstatus >/dev/null
+  if [[ $? -eq 0 ]]; then
+    echo "  OK: ${STAT_CMD} succeeded"
+  else
+    echo "  WARNING: ${STAT_CMD} failed"
+    echo "  (check the grid engine section in \`${LOCAL_DIR}/gt-setup.sh')"
+  fi
+  echo
+
+  echo "${name}: verifying that the scratch space is writable..."
+  mkdir -p "${SCRATCH_DIR}"
+  if [[ -w "${SCRATCH_DIR}" ]]; then
+    echo "  OK: directory is writable: ${SCRATCH_DIR}"
+  else
+    echo "  WARNING: cannot write to: ${SCRATCH_DIR}"
+    echo "  (set SCRATCH_DIR to a writable directory in the config file)"
+  fi
+  echo
+
+  echo "${name}: attempting to create the config file..."
   if [[ -e "${CONFIG_FILE}" && "${FORCE}" -ne 1 ]]; then
-    echo "${name}: file already exists: ${CONFIG_FILE}" 1>&2
+    echo "  ERROR: file already exists: ${CONFIG_FILE}" 1>&2
+    echo "  (use \`${name/-/ } -f' to overwrite the existing file)" 1>&2
     exit 1
   fi
 
+  set -e
+
   cat > "${CONFIG_FILE}" <<EOF
 # gtools version ${VERSION} runtime configuration file
-# Automatically created by ${name} at $(date "+%Y-%m-%d %H:%M:%S") using
+# Automatically created by ${name} on $(date "+%Y-%m-%d %H:%M:%S") using
 # $(/bin/bash --version | head -n 1)
 
 # Default qsub options (see 'man qsub')
-# QSUB_OPT must be an array (see http://tldp.org/LDP/abs/html/arrays.html)
-QSUB_OPT=(${QSUB_OPT[@]})
+# NOTE: must be an array and not a string!
+QSUB_OPT=($(printf '%q ' ${QSUB_OPT[@]}))
 
 # Maximum number of attempts to execute a command
 MAX_ATTEMPTS=${MAX_ATTEMPTS}
 
-# Path to the scratch folder (temporary storage)
+# Path to the directory to store jobs' metadata (temporarily)
 SCRATCH_DIR='${SCRATCH_DIR}'
+
 EOF
 
-  echo "${name}: default config written to: ${CONFIG_FILE}"
+  echo "  OK: configuration written to: ${CONFIG_FILE}"
 }
 
 main "$@"
