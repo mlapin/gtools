@@ -1,17 +1,21 @@
 #!/bin/bash
+#$ -S /bin/bash
 #
 # Execute a command
 set -e
 set -o pipefail
 
-. "${0%/*}/gt-setup.sh"
+. "$1/gt-setup.sh"
 
-MAX_ATTEMPTS="$1"
-shift
+MAX_ATTEMPTS="$2"
+shift 2
 
-read_meta
+trap 'log_signal HUP' HUP
+trap 'log_signal INT' INT
+trap 'log_signal TERM' TERM
+trap 'log_signal USR1' USR1
+trap 'log_signal USR2' USR2
+trap 'log_signal XCPU' XCPU
+trap 'log_signal XFSZ' XFSZ
 
-timeout -k "${TIMEOUT_KILL_DELAY}" "${TIMEOUT}" "${@}" || {
-  command_failed "$@"
-  exit "$?"
-}
+( eval "${@}" ) || command_failed "${@}"

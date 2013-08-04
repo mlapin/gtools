@@ -29,8 +29,8 @@ main() {
   while getopts ":a:t:m:v:" opt; do
     case "${opt}" in
       a) MAX_ATTEMPTS="${OPTARG}" ;;
-      m) RES_MEMORY="${OPTARG}" ;;
       t) RES_TIME="${OPTARG}" ;;
+      m) RES_MEMORY="${OPTARG}" ;;
       v) RES_VMEMORY="${OPTARG}" ;;
       \?) echo "${name}: unknown option: -$OPTARG" >&2; usage; exit 1 ;;
     esac
@@ -41,7 +41,15 @@ main() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --) shift; break ;;
-      *) cmd_args+=("$1") ;;
+      *)
+        if [[ ${#cmd_args[@]} -ge 1 ]]; then
+          local esc_bslash="${1//\\/\\\\}"
+          local esc_dquote="${esc_bslash//\"/\\\"}"
+          cmd_args+=("\"${esc_dquote}\"")
+        else
+          cmd_args+=("$1")
+        fi
+        ;;
     esac
     shift
   done
@@ -52,6 +60,9 @@ main() {
     exit 1
   fi
 
+  cmd_name="${cmd_args[0]}"
+  cmd_name="${cmd_name##*/}"
+
   update_qsub_opt "$@"
 
   verbose "options:" \
@@ -59,11 +70,10 @@ main() {
     "command: ${cmd_args[0]}"
   verbose "command args:" \
     "${cmd_args[@]:1}"
-  verbose "qsub options:" \
-    "${QSUB_OPT[@]}"
 
-  qsubmit -N "${cmd_args[0]}" "${QSUB_OPT[@]}" \
-    "${LOCAL_DIR}/grun-cmd.sh" "${MAX_ATTEMPTS}" "${cmd_args[@]}"
+  qsubmit -N "${cmd_name}" "${QSUB_OPT[@]}" \
+    "${LOCAL_DIR}/grun-cmd.sh" "${LOCAL_DIR}" "${MAX_ATTEMPTS}" \
+    "${cmd_args[@]}"
 }
 
 main "$@"

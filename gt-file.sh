@@ -87,11 +87,10 @@ main() {
     "file: ${cmd_file}" \
     "lines: ${total}" \
     "group by: ${step}"
-  verbose "qsub options:" \
-    "${QSUB_OPT[@]}"
 
   qsubmit -N "${cmd_name}" -t "1-${total}:${step}" "${QSUB_OPT[@]}" \
-    "${LOCAL_DIR}/grun-file.sh" "${cmd_file}" "${step}" "${MAX_ATTEMPTS}"
+    "${LOCAL_DIR}/grun-file.sh" "${LOCAL_DIR}" "${MAX_ATTEMPTS}" \
+    "${step}" "${cmd_file}"
 }
 
 main "$@"

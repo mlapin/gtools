@@ -3,7 +3,10 @@
 # Define common constants, functions, and default values
 set -e
 set -o pipefail
+unset VERSION
+unset START_TIME
 readonly VERSION=0.1
+readonly START_TIME=$(date +%s%N)
 
 ################################################################################
 #
@@ -12,7 +15,7 @@ readonly VERSION=0.1
 
 # Default qsub options (see 'man qsub')
 if [[ -z "${QSUB_OPT}" ]]; then
-  QSUB_OPT=(-cwd -V -notify -r y -l h_rt=14400,h_vmem=6G,mem_free=1G)
+  QSUB_OPT=(-cwd -V -r y -l h_rt='14400,h_vmem=6G,mem_free=1G')
 fi
 
 # Maximum number of attempts to execute a command
@@ -46,72 +49,59 @@ source /n1_grid/current/inf/common/settings.sh"}"
 RET_RESUB="${RET_RESUB:-99}"
 RET_STOP="${RET_STOP:-100}"
 
-# Timeout delays (allows the wrapper script to exit gracefully)
-TIMEOUT_OFFSET=10 # subtract this amount (in seconds) from the actual timeout
-TIMEOUT_KILL_DELAY=1 # wait this amount (seconds) before sending KILL
-
 # Job statuses (regex for matching qstat output in gawk)
 STAT_RUNNING="${STAT_RUNNING:-"/[rt]/"}"
-STAT_WAITING="${STAT_WAITING:-"/[hw]/"}"
+STAT_WAITING="${STAT_WAITING:-"/^[Rhqw ]*$/"}"
 STAT_ERROR="${STAT_ERROR:-"/[E]/"}"
 
 # Job and task IDs
 JOB_ID="${JOB_ID:-1}"
 SGE_TASK_ID="${SGE_TASK_ID:-1}"
 TID="${TID:-${SGE_TASK_ID}}"
+if [[ "${TID}" = "undefined" ]]; then
+  TID=1
+fi
 
 
 qsubmit() {
-  if [[ -n "${VERBOSE}" || -n "${DRY_RUN}" ]]; then
-    echo "${SUBMIT_CMD}" -b y -terse "$@" 1>&2
-  fi
-  JOB_ID=$(run_on_submit_host "${SUBMIT_CMD}" -b y -terse "$@" |
+  JOB_ID=$(run_on_submit_host "${SUBMIT_CMD}" -notify -terse "$@" |
     sed -n -e 's/^\([0-9]\+\).*/\1/p')
   verbose "job id: ${JOB_ID}"
-  update_meta
   echo "${JOB_ID}"
 }
 
 qstatus() {
-  if [[ -n "${VERBOSE}" || -n "${DRY_RUN}" ]]; then
-    echo "${STAT_CMD}" "$@" 1>&2
-  fi
   run_on_submit_host "${STAT_CMD}" "$@"
 }
 
 qresubmit() {
-  if [[ -n "${VERBOSE}" || -n "${DRY_RUN}" ]]; then
-    echo "${MOD_CMD}" -cj "$@" 1>&2
-  fi
   run_on_submit_host "${MOD_CMD}" -cj "$@"
 }
 
 qdelete() {
-  if [[ -n "${VERBOSE}" || -n "${DRY_RUN}" ]]; then
-    echo "${DEL_CMD}" "$@" 1>&2
-  fi
   run_on_submit_host "${DEL_CMD}" "$@"
 }
 
-update_meta() {
-  TIMEOUT=$(run_on_submit_host "${STAT_CMD}" -j "${JOB_ID}" |
-    sed -n -e 's/^hard resource_list:.*h_rt=\([0-9]\+\).*/\1/p')
-  verbose "timeout (${STAT_CMD}): ${TIMEOUT}"
-  TIMEOUT=$((${TIMEOUT}-${TIMEOUT_OFFSET}))
-  if [[ ${TIMEOUT} -le 0 ]]; then
-    TIMEOUT=${TIMEOUT_OFFSET}
+run_on_submit_host() {
+  if [[ -n "${VERBOSE}" || -n "${DRY_RUN}" ]]; then
+    echo "command to execute:" 1>&2
+    verbose "$@"
   fi
-  verbose "timeout (adjusted): ${TIMEOUT}"
-  mkdir -p "${SCRATCH_DIR}/${JOB_ID}"
-  echo "${TIMEOUT}" > "${SCRATCH_DIR}/${JOB_ID}/.meta"
-}
-
-read_meta() {
-  TIMEOUT=$(<"${SCRATCH_DIR}/${JOB_ID}/.meta")
+  if [[ -n "${DRY_RUN}" ]]; then
+    echo "dry run: command not executed." 1>&2
+    exit 1
+  else
+    # If there is no qsub, ssh to a submit host and run there
+    command -v "${SUBMIT_CMD}" >/dev/null && "$@" || {
+      local cmd="$(printf ' %q' "$@")"
+      verbose "ssh -x ${SUBMIT_HOST} ${PRE_HOOK} && ${cmd}"
+      ssh -x "${SUBMIT_HOST}" "${PRE_HOOK} && ${cmd}"
+    }
+  fi
 }
 
 read_config() {
-  if [[ -s "${CONFIG_FILE}" ]]; then
+  if [[ -s "${CONFIG_FILE}" && -f "${CONFIG_FILE}" ]]; then
     . "${CONFIG_FILE}" "$@"
     verbose "loaded config: ${CONFIG_FILE}"
   else
@@ -120,7 +110,7 @@ read_config() {
 }
 
 update_qsub_opt() {
-  local custom_opt=
+  local custom_opt
   if [[ -n "${RES_TIME}" ]]; then
     custom_opt="${custom_opt},h_rt=${RES_TIME}"
   fi
@@ -136,41 +126,30 @@ update_qsub_opt() {
   QSUB_OPT+=("$@")
 }
 
-run_on_submit_host() {
-  if [[ -n "${DRY_RUN}" ]]; then
-    echo "dry run: command not executed." 1>&2
-    exit 1
-  else
-    # If there is no qsub, ssh to a submit host and run there
-    command -v "${SUBMIT_CMD}" >/dev/null && "$@" || {
-      local cmd
-      cmd=$(printf " %q" "$@")
-      ssh -x "${SUBMIT_HOST}" "${PRE_HOOK} && ${cmd}"
-    }
-  fi
-}
-
 command_failed() {
   # Append a dot to the job/task file, then check its size
   # to decide whether to stop or retry
-  if [[ $? -eq 124 ]]; then
-    log_error "TIMEOUT (${TIMEOUT} seconds)"
-  fi
   mkdir -p "${SCRATCH_DIR}/${JOB_ID}"
   printf '.' >> "${SCRATCH_DIR}/${JOB_ID}/${TID}"
-  local attempts
-  attempts=$(stat -c '%s' "${SCRATCH_DIR}/${JOB_ID}/${TID}")
-  if [[ ${attempts} -lt ${MAX_ATTEMPTS} ]]; then
-    log_error "Attempt ${attempts}/${MAX_ATTEMPTS} failed, RETRY: $@"
+  local attempts=$(<"${SCRATCH_DIR}/${JOB_ID}/${TID}")
+  if [[ ${#attempts} -lt ${MAX_ATTEMPTS} ]]; then
+    log_error "RETRY (${#attempts}/${MAX_ATTEMPTS}): $@"
     exit ${RET_RESUB}
   else
-    log_error "Attempt ${attempts}/${MAX_ATTEMPTS} failed, STOP: $@"
+    log_error "STOP (${#attempts}/${MAX_ATTEMPTS}): $@"
     exit ${RET_STOP}
   fi
 }
 
 log_error() {
-  echo "[$(date "+%Y-%m-%d %H:%M:%S") ${JOB_ID}.${TID}] $@" 1>&2
+  local ms=$((($(date +%s%N)-START_TIME)/1000000))
+  printf "[%03d:%02d:%02d.%03.0f ${JOB_ID}.${TID}] " \
+    $((ms/3600000)) $((ms/1000%3600/60)) $((ms/1000%60)) $((ms%1000)) 1>&2
+  echo "$@" 1>&2
+}
+
+log_signal() {
+  log_error "$1 (received signal)"
 }
 
 verbose() {
