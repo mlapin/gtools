@@ -25,9 +25,11 @@ EOF
 }
 
 show_my() {
+  SHOW_DETAILS=1
   SHOW_FIELD='res'
-  while getopts ":rw" opt; do
+  while getopts ":crw" opt; do
     case "${opt}" in
+      c) SHOW_DETAILS=0 ;;
       r) SHOW_FIELD='res' ;;
       w) SHOW_FIELD='cwd' ;;
       \?) echo "${name}: unknown option: -$OPTARG" >&2; usage; exit 1 ;;
@@ -111,9 +113,11 @@ show_my_details() {
     /^other$/ { print_title("Other jobs", "'"${FONT_BLUE}"'") }
     /^[0-9]+ / { if (report) {
       printf("%s %s %-5s %10s `'"${FONT_BOLD}"'%s'"${FONT_NORM}'"' %s\n",
-        $1, $2, $3, tasks[$1], name[$1], $4);
-      printf("%7s %s %s\n", "", time[$1], '"${SHOW_FIELD}"'[$1]);
-      print ""
+        $1, $2, $3, tasks[$1], name[$1], $4)
+      if ('"${SHOW_DETAILS}"') {
+        printf("%7s %s %s\n", "", time[$1], '"${SHOW_FIELD}"'[$1])
+        print ""
+      }
     }}' <<< "${details}"$'\n<<<end>>>\n'"${myjobs}"
 }
 
@@ -180,15 +184,19 @@ show_all() {
 main() {
   verbose "arguments (before parsing):" "$@"
 
-  FONT_BOLD=$(tput bold)
-  FONT_NORM=$(tput sgr0)
-  FONT_UL_ON=$(tput smul)
-  FONT_UL_OFF=$(tput rmul)
-  FONT_RED=$(tput setaf 1)
-  FONT_GREEN=$(tput setaf 2)
-  FONT_YELLOW=$(tput setaf 3)
-  FONT_BLUE=$(tput setaf 4)
+  # Produce formatted output (colors, etc) if STDOUT is a terminal
+  if [[ -t 1 ]]; then
+    FONT_NORM=$(tput sgr0) #'\033[0m'
+    FONT_BOLD=$(tput bold) #'\033[1m'
+    FONT_UL_ON=$(tput smul) #'\033[4m'
+    FONT_UL_OFF=$(tput rmul) #'\033[24m'
+    FONT_RED=$(tput setaf 1) #'\033[31m'
+    FONT_GREEN=$(tput setaf 2) #'\033[32m'
+    FONT_YELLOW=$(tput setaf 3) #'\033[33m'
+    FONT_BLUE=$(tput setaf 4) #'\033[34m'
+  fi
 
+  # Show current user jobs by default
   if [[ $# -eq 0 ]]; then
     show_my
   fi
