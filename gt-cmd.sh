@@ -10,9 +10,10 @@ usage() {
 usage: ${GT_NAME} cmd [--help] [options] <command> [<args>] [-- <qsub options>]
 
     -a <N>    make N attempts (resubmit up to N-1 times if command fails)
-    -t <T>    require h_rt=T (example: -t 00:30:00 or -t 1800)
+    -t <T>    require h_rt=T (example: -t 4:: or -t 14400)
     -m <M>    require mem_free=M (example: -m 1G)
     -v <M>    require h_vmem=M (example: -v 6G)
+    -u <K>    add a user-defined option (recognized keys: ${!USER_QSUB_OPT[@]})
 
 See \`man qsub' for qsub options.
 EOF
@@ -26,12 +27,14 @@ main() {
     exit 0
   fi
 
-  while getopts ":a:t:m:v:" opt; do
+  USER_QSUB_KEY=()
+  while getopts ":a:t:m:v:u:" opt; do
     case "${opt}" in
       a) MAX_ATTEMPTS="${OPTARG}" ;;
       t) RES_TIME="${OPTARG}" ;;
       m) RES_MEMORY="${OPTARG}" ;;
       v) RES_VMEMORY="${OPTARG}" ;;
+      u) USER_QSUB_KEY+=("${OPTARG}") ;;
       \?) echo "${name}: unknown option: -$OPTARG" >&2; usage; exit 1 ;;
     esac
   done

@@ -55,7 +55,7 @@ main() {
   fi
   echo
 
-  echo "${name}: attempting to create the config file..."
+  echo "${name}: attempting to create the user config file..."
   if [[ -e "${CONFIG_FILE}" && "${FORCE}" -ne 1 ]]; then
     echo "  ERROR: file already exists: ${CONFIG_FILE}" 1>&2
     echo "  (use \`${name/-/ } -f' to overwrite the existing file)" 1>&2
@@ -69,15 +69,26 @@ main() {
 # Automatically created by ${name} on $(date "+%Y-%m-%d %H:%M:%S") using
 # $(/bin/bash --version | head -n 1)
 
-# Default qsub options (see 'man qsub')
-# NOTE: must be an array and not a string!
-QSUB_OPT=($(printf '%q ' ${QSUB_OPT[@]}))
-
 # Maximum number of attempts to execute a command
 MAX_ATTEMPTS=${MAX_ATTEMPTS}
 
-# Path to the directory to store jobs' metadata (temporarily)
+# Default qsub options (see 'man qsub')
+# These options are always included in the qsub command (before any other args)
+declare -a QSUB_OPT=( $(printf '%q ' ${QSUB_OPT[@]}))
+
+# Default user-defined qsub options (see 'man qsub')
+# These options are activated via the '-u <option key>' parameter
+declare -A USER_QSUB_OPT=( $( \
+  for key in "${!USER_QSUB_OPT[@]}"; do \
+    printf "[%s]='%s' " "${key}" "${USER_QSUB_OPT[${key}]}"; \
+  done; ))
+
+# Path to the scratch folder (temporary metadata storage)
 SCRATCH_DIR='${SCRATCH_DIR}'
+
+# If not empty, automatically delete user files in the scratch folder
+# when there are no user jobs in the cluster
+AUTO_CLEANUP=1
 
 EOF
 

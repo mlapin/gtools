@@ -13,19 +13,30 @@ readonly START_TIME=$(date +%s%N)
 # Custom options (edit here)
 #
 
-# Default qsub options (see 'man qsub')
-if [[ -z "${QSUB_OPT}" ]]; then
-  QSUB_OPT=(-cwd -V -r y -l h_rt='14400,h_vmem=6G,mem_free=1G')
-fi
-
 # Maximum number of attempts to execute a command
 # (default is 2, i.e. resubmit once in case of failure)
 MAX_ATTEMPTS="${MAX_ATTEMPTS:-2}"
 
+# Default qsub options (see 'man qsub')
+# These options are always included in the qsub command (before any other args)
+if [[ -z "${QSUB_OPT}" ]]; then
+  declare -a QSUB_OPT=(-cwd -V -r y -l h_rt=14400,h_vmem=4G,mem_free=1G)
+fi
+
+# Default user-defined qsub options (see 'man qsub')
+# These options are activated via the '-u <option key>' parameter
+if [[ -z "${USER_QSUB_OPT}" ]]; then
+  declare -A USER_QSUB_OPT=( \
+    [4h]='-l h_rt=4::' \
+    [7d]='-l h_rt=168::' \
+    [d2]='-l reserved=D2blade|D2compute|D2parallel' \
+    )
+fi
+
 # Path to the config file
 CONFIG_FILE="${CONFIG_FILE:-"$HOME/.gtrc"}"
 
-# Path to the scratch folder (temporary storage)
+# Path to the scratch folder (temporary metadata storage)
 SCRATCH_DIR="${SCRATCH_DIR:-"/scratch/common/pool0/.gtools"}"
 
 # Path to the folder with the gtools scripts
@@ -118,6 +129,12 @@ read_config() {
 }
 
 update_qsub_opt() {
+  # Add user-defined options from USER_QSUB_OPT
+  for key in "${USER_QSUB_KEY[@]}"; do
+    QSUB_OPT+=(${USER_QSUB_OPT[${key}]}) # no quotes, need word splitting
+  done
+
+  # Add custom options from the shortcuts
   local custom_opt
   if [[ -n "${RES_TIME}" ]]; then
     custom_opt="${custom_opt},h_rt=${RES_TIME}"
@@ -131,6 +148,8 @@ update_qsub_opt() {
   if [[ -n "${custom_opt}" ]]; then
     QSUB_OPT+=(-l "${custom_opt:1}")
   fi
+
+  # Add any other options given directly in the command line
   QSUB_OPT+=("$@")
 }
 

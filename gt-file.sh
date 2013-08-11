@@ -12,9 +12,10 @@ usage: ${GT_NAME} file [--help] [options] <file> [-- <qsub options>]
     -g <N>    group commands into batches (N lines per group, default: N=1)
               use '-g all' to submit all commands in a single batch
     -a <N>    make N attempts (resubmit up to N-1 times if command fails)
-    -t <T>    require h_rt=T (example: -t 00:30:00 or -t 1800)
+    -t <T>    require h_rt=T (example: -t 4:: or -t 14400)
     -m <M>    require mem_free=M (example: -m 1G)
     -v <M>    require h_vmem=M (example: -v 6G)
+    -u <K>    add a user-defined option (recognized keys: ${!USER_QSUB_OPT[@]})
 
 See \`man qsub' for qsub options.
 EOF
@@ -28,13 +29,15 @@ main() {
     exit 0
   fi
 
-  while getopts ":g:a:t:m:v:" opt; do
+  USER_QSUB_KEY=()
+  while getopts ":g:a:t:m:v:u:" opt; do
     case "${opt}" in
       g) step="${OPTARG}" ;;
       a) MAX_ATTEMPTS="${OPTARG}" ;;
       m) RES_MEMORY="${OPTARG}" ;;
       t) RES_TIME="${OPTARG}" ;;
       v) RES_VMEMORY="${OPTARG}" ;;
+      u) USER_QSUB_KEY+=("${OPTARG}") ;;
       \?) echo "${name}: unknown option: -$OPTARG" >&2; usage; exit 1 ;;
     esac
   done
