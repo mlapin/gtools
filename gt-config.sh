@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# Create a config file
+# Create a user config file
 set -e
 set -o pipefail
-name="${GT_NAME}-init"
+name="${GT_NAME}-config"
 
 usage() {
   cat <<EOF
-usage: ${GT_NAME} init [options]
+usage: ${GT_NAME} config [options]
 
     -f    overwrite the config file if it already exists
 EOF
@@ -17,7 +17,7 @@ main() {
   verbose "arguments (before parsing):" "$@"
 
   if [[ "$1" = 'help' || "$1" = '--help' ]]; then
-    show_help "init"
+    show_help "config"
     exit 0
   fi
 
@@ -33,36 +33,11 @@ main() {
     "force: ${FORCE}" \
     "config file: ${CONFIG_FILE}"
 
-  set +e
-
-  echo "${name}: verifying that grid engine commands are available..."
-  qstatus >/dev/null
-  if [[ $? -eq 0 ]]; then
-    echo "  OK: ${STAT_CMD} succeeded"
-  else
-    echo "  WARNING: ${STAT_CMD} failed"
-    echo "  (check the grid engine section in \`${LOCAL_DIR}/gt-setup.sh')"
-  fi
-  echo
-
-  echo "${name}: verifying that the scratch space is writable..."
-  mkdir -p "${SCRATCH_DIR}"
-  if [[ -w "${SCRATCH_DIR}" ]]; then
-    echo "  OK: directory is writable: ${SCRATCH_DIR}"
-  else
-    echo "  WARNING: cannot write to: ${SCRATCH_DIR}"
-    echo "  (set SCRATCH_DIR to a writable directory in the config file)"
-  fi
-  echo
-
-  echo "${name}: attempting to create the user config file..."
   if [[ -e "${CONFIG_FILE}" && "${FORCE}" -ne 1 ]]; then
-    echo "  ERROR: file already exists: ${CONFIG_FILE}" 1>&2
-    echo "  (use \`${name/-/ } -f' to overwrite the existing file)" 1>&2
+    echo "${name}: file already exists: ${CONFIG_FILE}" >&2
+    echo "  (use \`${name/-/ } -f' to overwrite the existing file)" >&2
     exit 1
   fi
-
-  set -e
 
   cat > "${CONFIG_FILE}" <<EOF
 # gtools version ${VERSION} runtime configuration file
@@ -92,7 +67,7 @@ AUTO_CLEANUP=1
 
 EOF
 
-  echo "  OK: configuration written to: ${CONFIG_FILE}"
+  echo "${name}: configuration written to: ${CONFIG_FILE}"
 }
 
 main "$@"
