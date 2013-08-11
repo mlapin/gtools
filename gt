@@ -17,7 +17,8 @@ usage: ${GT_NAME} [--version] [--help] [--config <path>] [--dry-run] [--verbose]
           <command> [<args>]
 
 Commands:
-   init       Create user config file
+   check      Check if gtools are ready to use
+   config     Create a user config file
    cmd        Submit a single command
    file       Submit a set of commands listed in a file
    stat       Show the status of submitted jobs
@@ -29,7 +30,7 @@ EOF
 }
 
 unknown_command() {
-  echo "${name}: '$1' is not a ${name} command. See \`${name/-/ } --help'." 1>&2
+  echo "${name}: '$1' is not a ${name} command. See \`${name/-/ } --help'." >&2
 }
 
 show_help() {

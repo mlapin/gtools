@@ -110,7 +110,7 @@ run_on_submit_host() {
     echo "dry run: command not executed." >&2
     exit 1
   else
-    # If there is no qsub, ssh to a submit host and run there
+    # If there is no qsub, ssh to a submit host and run from there
     command -v "${SUBMIT_CMD}" >/dev/null && "$@" || {
       local cmd="$(printf ' %q' "$@")"
       verbose "ssh -x ${SUBMIT_HOST} ${PRE_HOOK} && ${cmd}"
@@ -154,8 +154,8 @@ update_qsub_opt() {
 }
 
 command_failed() {
-  # Append a dot to the job/task file, then check its size
-  # to decide whether to stop or retry
+  # Append a dot to the job/task file,
+  # then check its size to decide whether to stop or retry
   mkdir -p "${SCRATCH_DIR}/${JOB_ID}"
   printf '.' >> "${SCRATCH_DIR}/${JOB_ID}/${TID}"
   local attempts=$(<"${SCRATCH_DIR}/${JOB_ID}/${TID}")

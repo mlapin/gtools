@@ -16,6 +16,7 @@ usage: ${GT_NAME} file [--help] [options] <file> [-- <qsub options>]
     -m <M>    require mem_free=M (example: -m 1G)
     -v <M>    require h_vmem=M (example: -v 6G)
     -u <K>    add a user-defined option (recognized keys: ${!USER_QSUB_OPT[@]})
+    -p        profile the command (report time and resource usage)
 
 See \`man qsub' for qsub options.
 EOF
@@ -30,7 +31,8 @@ main() {
   fi
 
   USER_QSUB_KEY=()
-  while getopts ":g:a:t:m:v:u:" opt; do
+  local profile=noprofile
+  while getopts ":g:a:t:m:v:u:p" opt; do
     case "${opt}" in
       g) step="${OPTARG}" ;;
       a) MAX_ATTEMPTS="${OPTARG}" ;;
@@ -38,6 +40,7 @@ main() {
       t) RES_TIME="${OPTARG}" ;;
       v) RES_VMEMORY="${OPTARG}" ;;
       u) USER_QSUB_KEY+=("${OPTARG}") ;;
+      p) profile='profile' ;;
       \?) echo "${name}: unknown option: -$OPTARG" >&2; usage; exit 1 ;;
     esac
   done
@@ -92,7 +95,7 @@ main() {
     "group by: ${step}"
 
   qsubmit -N "${cmd_name}" -t "1-${total}:${step}" "${QSUB_OPT[@]}" \
-    "${LOCAL_DIR}/grun-file.sh" "${LOCAL_DIR}" "${MAX_ATTEMPTS}" \
+    "${LOCAL_DIR}/grun-file.sh" "${LOCAL_DIR}" "${MAX_ATTEMPTS}" "${profile}" \
     "${step}" "${cmd_file}"
 }
 
