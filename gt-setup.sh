@@ -43,6 +43,14 @@ SUBMIT_HOST="${SUBMIT_HOST:-"submit-squeeze"}"
 PRE_HOOK="${PRE_HOOK:-"cd '${PWD}' && \
 source /n1_grid/current/inf/common/settings.sh"}"
 
+# If not empty, automatically delete user files in the scratch folder
+# when there are no user jobs in the cluster
+AUTO_CLEANUP=1
+
+# Show a notification message after specified number of seconds
+# if an interactive command is taking longer to complete
+NOTIFY_AFTER=1
+
 ################################################################################
 
 # Return codes that trigger special handling by the grid engine
@@ -84,11 +92,11 @@ qdelete() {
 
 run_on_submit_host() {
   if [[ -n "${VERBOSE}" || -n "${DRY_RUN}" ]]; then
-    echo "command to execute:" 1>&2
+    echo "command to execute:" >&2
     verbose "$@"
   fi
   if [[ -n "${DRY_RUN}" ]]; then
-    echo "dry run: command not executed." 1>&2
+    echo "dry run: command not executed." >&2
     exit 1
   else
     # If there is no qsub, ssh to a submit host and run there
@@ -141,11 +149,26 @@ command_failed() {
   fi
 }
 
+cleanup_scratch() {
+  local user1
+  user1=$(/usr/bin/whoami)
+  if [[ ! "${USER}" = "${user1}" ]]; then
+    echo "${name}: cannot clean up for ${USER}" >&2
+    exit 1
+  fi
+  local pid
+  { sleep "${NOTIFY_AFTER}"; echo "${name}: performing cleanup..." >&2; } \
+    & pid=$!
+  find "${SCRATCH_DIR}/" -user "${user1}" "${@}" -delete 2>&1 \
+    | grep 'cannot' >&2
+  kill "${pid}" >/dev/null 2>&1
+}
+
 log_error() {
   local ms=$((($(date +%s%N)-START_TIME)/1000000))
   printf "[%03d:%02d:%02d.%03.0f ${JOB_ID}.${TID}] " \
-    $((ms/3600000)) $((ms/1000%3600/60)) $((ms/1000%60)) $((ms%1000)) 1>&2
-  echo "$@" 1>&2
+    $((ms/3600000)) $((ms/1000%3600/60)) $((ms/1000%60)) $((ms%1000)) >&2
+  echo "$@" >&2
 }
 
 log_signal() {
@@ -154,7 +177,7 @@ log_signal() {
 
 verbose() {
   if [[ -n "${VERBOSE}" ]]; then
-    echo "$1" 1>&2
+    echo "$1" >&2
     if [[ $# -gt 1 ]]; then
       print_args "${@:2}"
     fi
@@ -162,5 +185,5 @@ verbose() {
 }
 
 print_args() {
-  for i in "$@"; do echo "  [$i]" 1>&2; done
+  for i in "$@"; do echo "  [$i]" >&2; done
 }

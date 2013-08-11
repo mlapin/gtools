@@ -46,7 +46,11 @@ show_my() {
     echo "${name}: ${USER} has no submitted jobs"
     echo "  (use \`${GT_NAME} help cmd' or \`${GT_NAME} help file' to learn \
 how to submit a job)"
-    exit 0
+
+    # Remove temporary files created for previous jobs (user specific)
+    if [[ -n "${AUTO_CLEANUP}" ]]; then
+      cleanup_scratch && exit 0
+    fi
   fi
 
   # Get the list of job ids from the first line
@@ -112,7 +116,7 @@ show_my_details() {
     /^error$/ { print_title("Failed jobs", "'"${FONT_RED}"'") }
     /^other$/ { print_title("Other jobs", "'"${FONT_BLUE}"'") }
     /^[0-9]+ / { if (report) {
-      printf("%s %s %-5s %10s `'"${FONT_BOLD}"'%s'"${FONT_NORM}'"' %s\n",
+      printf("%s %s %-5s %10s '"${FONT_BOLD}"'%s'"${FONT_NORM}"' %s\n",
         $1, $2, $3, tasks[$1], name[$1], $4)
       if ('"${SHOW_DETAILS}"') {
         printf("%7s %s %s\n", "", time[$1], '"${SHOW_FIELD}"'[$1])

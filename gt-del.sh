@@ -25,7 +25,7 @@ delete_all() {
   if [[ -z "${force}" ]]; then
     read -p "Delete all ${USER}'s jobs (y/n)? " -n 1 -r
     echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    if [[ ! "${REPLY}" =~ ^[Yy]$ ]]; then
         echo "${name}: no jobs deleted"
         exit 0
     fi
