@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# Create a user config file
+# Creates a user config file
 set -e
 set -o pipefail
 name="${GT_NAME}-config"
 
 usage() {
   cat <<EOF
-usage: ${GT_NAME} config [options]
+usage: ${name/-/ } [--help] [options]
 
     -f    overwrite the config file if it already exists
 EOF
@@ -36,6 +36,7 @@ main() {
   if [[ -e "${CONFIG_FILE}" && "${FORCE}" -ne 1 ]]; then
     echo "${name}: file already exists: ${CONFIG_FILE}" >&2
     echo "  (use \`${name/-/ } -f' to overwrite the existing file)" >&2
+    echo "  (delete the config file to restore default settings)" >&2
     exit 1
   fi
 

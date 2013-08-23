@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Define common constants, functions, and default values
+# Defines common constants, functions, and default values
 set -e
 set -o pipefail
 unset VERSION
@@ -14,7 +14,7 @@ readonly START_TIME=$(date +%s%N)
 #
 
 # Maximum number of attempts to execute a command
-# (default is 2, i.e. resubmit once in case of failure)
+# (default is 2, i.e. reschedule once in case of failure)
 MAX_ATTEMPTS="${MAX_ATTEMPTS:-2}"
 
 # Default qsub options (see 'man qsub')
@@ -33,7 +33,7 @@ if [[ -z "${USER_QSUB_OPT}" ]]; then
     )
 fi
 
-# Path to the config file
+# Path to the user config file
 CONFIG_FILE="${CONFIG_FILE:-"$HOME/.gtrc"}"
 
 # Path to the scratch folder (temporary metadata storage)
@@ -54,19 +54,22 @@ SUBMIT_HOST="${SUBMIT_HOST:-"submit-squeeze"}"
 PRE_HOOK="${PRE_HOOK:-"cd '${PWD}' && \
 source /n1_grid/current/inf/common/settings.sh"}"
 
+# The command for measuring running time and resource usage
+TIMEIT_CMD="${SUBMIT_CMD:-"/usr/bin/time -v"}"
+
 # If not empty, automatically delete user files in the scratch folder
 # when there are no user jobs in the cluster
 AUTO_CLEANUP=1
 
-# Show a notification message after specified number of seconds
+# Show a notification message after the specified number of seconds
 # if an interactive command is taking longer to complete
 NOTIFY_AFTER=1
 
 ################################################################################
 
 # Return codes that trigger special handling by the grid engine
-RET_RESUB="${RET_RESUB:-99}"
-RET_STOP="${RET_STOP:-100}"
+RET_RESUB="${RET_RESUB:-99}"  # reschedules the job/task
+RET_STOP="${RET_STOP:-100}"   # sets the job into error state
 
 # Job statuses (regex for matching qstat output in gawk)
 STAT_RUNNING="${STAT_RUNNING:-"/[rt]/"}"
@@ -82,7 +85,14 @@ if [[ "${TID}" = "undefined" ]]; then
 fi
 
 
+unknown_command() {
+  echo "${name}: '$1' is not a ${name} command. See \`${name/-/ } --help'." >&2
+}
+
 qsubmit() {
+  # -notify enables USR2 signal, which is fired e.g. when the h_rt limit is hit
+  # the wrapper scripts handle this as if the command failed (nonzero exit code)
+  # -terse forces qsub to output only the job id upon successful submission
   JOB_ID=$(run_on_submit_host "${SUBMIT_CMD}" -notify -terse "$@" |
     sed -n -e 's/^\([0-9]\+\).*/\1/p')
   verbose "job id: ${JOB_ID}"
@@ -110,8 +120,9 @@ run_on_submit_host() {
     echo "dry run: command not executed." >&2
     exit 1
   else
-    # If there is no qsub, ssh to a submit host and run from there
+    # If there is no qsub, ssh to a submit host and try there
     command -v "${SUBMIT_CMD}" >/dev/null && "$@" || {
+      # Quoting is required to correctly pass the command
       local cmd="$(printf ' %q' "$@")"
       verbose "ssh -x ${SUBMIT_HOST} ${PRE_HOOK} && ${cmd}"
       ssh -x "${SUBMIT_HOST}" "${PRE_HOOK} && ${cmd}"
@@ -129,12 +140,14 @@ read_config() {
 }
 
 update_qsub_opt() {
-  # Add user-defined options from USER_QSUB_OPT
+  # First, start with the default qsub options (see definition of QSUB_OPT)
+
+  # Second, add any user-defined options if requested by the -u <key> option
   for key in "${USER_QSUB_KEY[@]}"; do
     QSUB_OPT+=(${USER_QSUB_OPT[${key}]}) # no quotes, need word splitting
   done
 
-  # Add custom options from the shortcuts
+  # Third, add resource limits from the shortcut options (e.g. -t <time>)
   local custom_opt
   if [[ -n "${RES_TIME}" ]]; then
     custom_opt="${custom_opt},h_rt=${RES_TIME}"
@@ -149,16 +162,23 @@ update_qsub_opt() {
     QSUB_OPT+=(-l "${custom_opt:1}")
   fi
 
-  # Add any other options given directly in the command line
+  # Finally, add any other options given directly in the command line
+  # these typically appear after the '--' at the end
   QSUB_OPT+=("$@")
 }
 
 command_failed() {
-  # Append a dot to the job/task file,
+  # Append a dot '.' to the job/task file to count the number of attempts,
   # then check its size to decide whether to stop or retry
   mkdir -p "${SCRATCH_DIR}/${JOB_ID}"
-  printf '.' >> "${SCRATCH_DIR}/${JOB_ID}/${TID}"
-  local attempts=$(<"${SCRATCH_DIR}/${JOB_ID}/${TID}")
+  local fname="${SCRATCH_DIR}/${JOB_ID}/${TID}"
+  printf '.' >> "${fname}"
+
+  # Read the file into a local variable
+  local attempts
+  attempts=$(<"${fname}") || log_error "Cannot read metadata: ${fname}"
+
+  # Decide whether to stop or retry (reschedule)
   if [[ ${#attempts} -lt ${MAX_ATTEMPTS} ]]; then
     log_error "RETRY (${#attempts}/${MAX_ATTEMPTS}): $@"
     exit ${RET_RESUB}
@@ -169,21 +189,29 @@ command_failed() {
 }
 
 cleanup_scratch() {
+  # Check that the $USER variable is not overriden
   local user1
-  user1=$(/usr/bin/whoami)
+  user1=$(/usr/bin/whoami) || echo "${name}: whoami failed" >&2
   if [[ ! "${USER}" = "${user1}" ]]; then
     echo "${name}: cannot clean up for ${USER}" >&2
     exit 1
   fi
+
+  # Show a notification message if the command is taking too long
   local pid
   { sleep "${NOTIFY_AFTER}"; echo "${name}: performing cleanup..." >&2; } \
     & pid=$!
-  find "${SCRATCH_DIR}/" -user "${user1}" "${@}" -delete 2>&1 \
+
+  # Delete all files/folders of the current user in the scratch directory
+  find "${SCRATCH_DIR}/*" -user "${user1}" "$@" -delete 2>&1 \
     | grep 'cannot' >&2
+
+  # Kill the notification subprocess if it hasn't quit yet
   kill "${pid}" >/dev/null 2>&1
 }
 
 log_error() {
+  # Show the timestamp since the job/task is started (ms precision)
   local ms=$((($(date +%s%N)-START_TIME)/1000000))
   printf "[%03d:%02d:%02d.%03.0f ${JOB_ID}.${TID}] " \
     $((ms/3600000)) $((ms/1000%3600/60)) $((ms/1000%60)) $((ms%1000)) >&2
@@ -191,7 +219,7 @@ log_error() {
 }
 
 log_signal() {
-  log_error "$1 (received signal)"
+  log_error "$@ (received signal)"
 }
 
 verbose() {

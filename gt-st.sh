@@ -1,19 +1,20 @@
 #!/bin/bash
 #
-# Show the status of Grid Engine jobs and queues
+# Shows the status of grid engine jobs and queues
 set -e
 set -o pipefail
-name="${GT_NAME}-stat"
+name="${GT_NAME}-st"
 
 usage() {
   cat <<EOF
-usage: ${GT_NAME} stat [--help] [<command> [options] | <qstat options>]
+usage: ${name/-/ } [--help] [<command> [options] | <qstat options>]
 
 Commands:
     my        Show detailed user jobs summary (default)
     all       Show cluster summary over all users
 
 \`my' options:
+    -c        compact format
     -r        display the requested resources (default)
     -w        display the working directory
 
@@ -25,8 +26,8 @@ EOF
 }
 
 show_my() {
-  SHOW_DETAILS=1
-  SHOW_FIELD='res'
+  SHOW_DETAILS=1    # whether to show details or not
+  SHOW_FIELD='res'  # which field to show in details
   while getopts ":crw" opt; do
     case "${opt}" in
       c) SHOW_DETAILS=0 ;;
@@ -43,11 +44,11 @@ show_my() {
 
   # Exit if there are no submitted jobs
   if [[ -z "${myjobs}" ]]; then
-    echo "${name}: ${USER} has no submitted jobs"
+    echo "${name}: no submitted jobs"
     echo "  (use \`${GT_NAME} help cmd' or \`${GT_NAME} help file' to learn \
 how to submit a job)"
 
-    # Remove temporary files created for previous jobs (user specific)
+    # Remove temporary metadata files created for previous jobs (user specific)
     if [[ -n "${AUTO_CLEANUP}" ]]; then
       cleanup_scratch && exit 0
     fi
@@ -61,9 +62,9 @@ how to submit a job)"
 
   # Show suggestions if there are failed jobs
   if [[ "${myjobs}" =~ .*error.* ]]; then
-    echo "  (use \`${GT_NAME} resub' to resubmit failed jobs \
+    echo "  (use \`${GT_NAME} re' to reschedule failed jobs \
 once the problem is fixed)"
-    echo "  (use \`${GT_NAME} del' to delete failed jobs)"
+    echo "  (use \`${GT_NAME} rm' to remove failed jobs)"
   fi
 }
 
@@ -208,7 +209,7 @@ main() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --help|help)
-        show_help "stat"
+        show_help "st"
         break
         ;;
       my)

@@ -1,14 +1,14 @@
 #!/bin/bash
 #$ -S /bin/bash
 #
-# Execute a command
+# Executes a command
 set -e
 set -o pipefail
 
 . "$1/gt-setup.sh"
 
 MAX_ATTEMPTS="$2"
-profile="$3"
+timeit="$3"
 shift 3
 
 # Setup traps to report received signals
@@ -22,11 +22,11 @@ trap 'log_signal XCPU' XCPU
 trap 'log_signal XFSZ' XFSZ
 
 # Report resource usage if profiling is requested
-unset time
-if [[ "${profile}" = "profile" ]]; then
-  time="/usr/bin/time -v"
+unset timeit_cmd
+if [[ "${timeit}" = "yes" ]]; then
+  timeit_cmd="${TIMEIT_CMD}"
 fi
 
 # Execute the command via `eval' to enable variable substitution
-# (e.g., it allows one to use `\$JOB_ID' as an argument)
-eval "${time}" "${@}" || command_failed "${@}"
+# (e.g., one can use `\$JOB_ID' as an argument)
+eval ${timeit_cmd} "$@" || command_failed "$@"

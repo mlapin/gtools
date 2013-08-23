@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# Delete Grid Engine jobs
+# Deletes grid engine jobs
 set -e
 set -o pipefail
-name="${GT_NAME}-del"
+name="${GT_NAME}-rm"
 
 usage() {
   cat <<EOF
-usage: ${GT_NAME} del [--help] [all [-f] | failed | <job_id>[ ...]]
+usage: ${name/-/ } [--help] [all [-f] | failed | <job_id> ...]
 
     -f    do not prompt to confirm deletion of all user jobs
 EOF

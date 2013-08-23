@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# Check if gtools are ready to use
+# Checks if gtools are ready to use
 set -e
 set -o pipefail
 name="${GT_NAME}-check"
 
 usage() {
   cat <<EOF
-usage: ${GT_NAME} check
+usage: ${name/-/ } [--help]
 EOF
 }
 
@@ -50,7 +50,7 @@ main() {
   if [[ -z "${errors_occurred}" ]]; then
     echo "${GT_NAME} is ready!"
   else
-    echo "Some setup is required (see above)."
+    echo "Some setting up is required (see above)."
     exit 1
   fi
 }

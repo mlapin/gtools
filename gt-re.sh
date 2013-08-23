@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# Resubmit failed jobs
+# Reschedules failed jobs
 set -e
 set -o pipefail
-name="${GT_NAME}-resub"
+name="${GT_NAME}-re"
 
 usage() {
   cat <<EOF
-usage: ${GT_NAME} resub [--help] [all | <job_id> ...]
+usage: ${name/-/ } [--help] [all | <job_id> ...]
 EOF
 }
 
@@ -18,7 +18,7 @@ resub_all() {
   verbose "${myjobs}"
 
   if [[ -z "${myjobs}" ]]; then
-    echo "${name}: no failed jobs to resubmit"
+    echo "${name}: no failed jobs to reschedule"
     exit 0
   fi
 
@@ -36,7 +36,7 @@ main() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --help|help)
-        show_help "resub"
+        show_help "re"
         break
         ;;
       all)

@@ -1,20 +1,20 @@
 #!/bin/bash
 #
-# Submit a single command
+# Submits a single command
 set -e
 set -o pipefail
 name="${GT_NAME}-cmd"
 
 usage() {
   cat <<EOF
-usage: ${GT_NAME} cmd [--help] [options] <command> [<args>] [-- <qsub options>]
+usage: ${name/-/ } [--help] [options] <command> [<args>] [-- <qsub options>]
 
     -a <N>    make N attempts (resubmit up to N-1 times if command fails)
     -t <T>    require h_rt=T (example: -t 4:: or -t 14400)
     -m <M>    require mem_free=M (example: -m 1G)
     -v <M>    require h_vmem=M (example: -v 6G)
-    -u <K>    add a user-defined option (recognized keys: ${!USER_QSUB_OPT[@]})
-    -p        profile the command (report time and resource usage)
+    -u <K>    add a user-defined option (available keys: ${!USER_QSUB_OPT[@]})
+    -p        profile the command (report running time and resource usage)
 
 See \`man qsub' for qsub options.
 EOF
@@ -28,8 +28,9 @@ main() {
     exit 0
   fi
 
+  # Parse known options
   USER_QSUB_KEY=()
-  local profile=noprofile
+  local timeit='no'
   while getopts ":a:t:m:v:u:p" opt; do
     case "${opt}" in
       a) MAX_ATTEMPTS="${OPTARG}" ;;
@@ -37,17 +38,20 @@ main() {
       m) RES_MEMORY="${OPTARG}" ;;
       v) RES_VMEMORY="${OPTARG}" ;;
       u) USER_QSUB_KEY+=("${OPTARG}") ;;
-      p) profile='profile' ;;
+      p) timeit='yes' ;;
       \?) echo "${name}: unknown option: -$OPTARG" >&2; usage; exit 1 ;;
     esac
   done
   shift $((${OPTIND}-1))
 
+  # The rest (before --) is treated as a command with its args
   cmd_args=()
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --) shift; break ;;
       *)
+        # Since the command will be eval'ed, command args are double-quoted
+        # (which also enables variable substitution at eval time)
         if [[ ${#cmd_args[@]} -ge 1 ]]; then
           local esc_bslash="${1//\\/\\\\}"
           local esc_dquote="${esc_bslash//\"/\\\"}"
@@ -69,6 +73,7 @@ main() {
   cmd_name="${cmd_args[0]}"
   cmd_name="${cmd_name##*/}"
 
+  # The rest (after --) are qsub options
   update_qsub_opt "$@"
 
   verbose "options:" \
@@ -78,7 +83,7 @@ main() {
     "${cmd_args[@]:1}"
 
   qsubmit -N "${cmd_name}" "${QSUB_OPT[@]}" \
-    "${LOCAL_DIR}/grun-cmd.sh" "${LOCAL_DIR}" "${MAX_ATTEMPTS}" "${profile}" \
+    "${LOCAL_DIR}/grun-cmd.sh" "${LOCAL_DIR}" "${MAX_ATTEMPTS}" "${timeit}" \
     "${cmd_args[@]}"
 }
 

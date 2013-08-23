@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Submit grid engine jobs
+# Submits grid engine jobs
 set -e
 set -o pipefail
 GT_NAME="${0##*/}"
@@ -13,7 +13,7 @@ fi
 
 usage() {
   cat <<EOF
-usage: ${GT_NAME} [--version] [--help] [--config <path>] [--dry-run] [--verbose]
+usage: ${name/-/ } [--version] [--help] [--config <path>] [--dry-run] [--verbose]
           <command> [<args>]
 
 Commands:
@@ -21,16 +21,12 @@ Commands:
    config     Create a user config file
    cmd        Submit a single command
    file       Submit a set of commands listed in a file
-   stat       Show the status of submitted jobs
-   resub      Resubmit failed jobs
-   del        Delete submitted jobs
+   st         Show the status of submitted jobs
+   re         Reschedule failed jobs
+   rm         Remove submitted jobs
 
-See \`${GT_NAME} help <command>' for more information on a specific command.
+See \`${name/-/ } help <command>' for more information on a specific command.
 EOF
-}
-
-unknown_command() {
-  echo "${name}: '$1' is not a ${name} command. See \`${name/-/ } --help'." >&2
 }
 
 show_help() {
@@ -68,7 +64,7 @@ main() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --version)
-        echo "${GT_NAME}: gtools version ${VERSION}"
+        echo "${name}: gtools version ${VERSION}"
         break
         ;;
       --help|help)
