@@ -3,33 +3,86 @@ gt(1)
 
 NAME
 ----
-gt - grid engine tools
+gt - Grid Engine tools
 
 SYNOPSIS
 --------
 [verse]
-'gt' [--version] [--help] <command> [<args>]
+'gt' [--version] [--help] [--config <path>] [--dry-run] [--verbose]
+   <command> [<args>]
 
 DESCRIPTION
 -----------
-TODO
+'gt' is a collection of tools that make certain tasks easier when working
+with the Oracle (Sun) Grid Engine.
+
+The common tasks include submitting a single command or a batch of commands,
+checking jobs' status, and rescheduling or removing failed jobs.
+
+For example, the 'gt' wrapper script checks the exit code of every submitted
+command and if it has failed (i.e. returned a nonzero code)
+the corresponding job/task will be either automatically rescheduled to re-try
+or put into error state for the user to see it in the qstat output.
+
+You can learn more about individual 'gt' commands with "gt help <command>".
+The list of supported commands is given below.
 
 OPTIONS
 -------
 *--version*::
-    Prints the **gtools** suite version.
+  Print the gtools version.
 
-*-h, --help*::
-    Prints the synopsis and a list of commands.
+*help*::
+*--help*::
+  Print the synopsis and a list of commands.
+
+*--config* 'path'::
+  Use the specified user config.
+
+*--dry-run*::
+  Display the submit command, but do not execute it.
+
+*--verbose*::
+  Be verbose.
+
+GT COMMANDS
+------------
+*check*::
+  Check if gtools are ready to use
+
+*config*::
+  Create a user config file
+
+*cmd*::
+  Submit a single command
+
+*file*::
+  Submit a set of commands listed in a file
+
+*st*::
+  Show the status of submitted jobs
+
+*re*::
+  Reschedule failed jobs
+
+*rm*::
+  Remove jobs
 
 EXAMPLES
 --------
-TODO
+Submit a simple command.::
+  gt cmd echo "Hello World!"
+
+Submit a job array (every line in commands.txt is a separate command).::
+  gt file commands.txt
+
+Show the status of submitted jobs.::
+  gt st
 
 AUTHOR
 ------
-Maksim Lapin <mlapin@mpi-inf.mpg.de>
+Written by Maksim Lapin <mlapin@mpi-inf.mpg.de>.
 
-SEE ALSO
---------
-**gt-cmd**(1), **gt-file**(1)
+REPORTING BUGS
+--------------
+Issue tracking: http://github.com/mlapin/gtools/issues

@@ -1,14 +1,14 @@
-gt-file(1)
-==========
+gt-config(1)
+============
 
 NAME
 ----
-gt-file - Submit an array of commands listed in a file
+gt-config - Create a user config file
 
 SYNOPSIS
 --------
 [verse]
-'gt file' [-g <size>] <file> [--] [<qsub args>...]
+'gt config' [<args>...]
 
 DESCRIPTION
 -----------

@@ -1,14 +1,14 @@
-gt-file(1)
-==========
+gt-rm(1)
+========
 
 NAME
 ----
-gt-file - Submit an array of commands listed in a file
+gt-rm - Remove Grid Engine jobs
 
 SYNOPSIS
 --------
 [verse]
-'gt file' [-g <size>] <file> [--] [<qsub args>...]
+'gt rm' [--help] [all [-f] | failed | <job_id>[ ...]]
 
 DESCRIPTION
 -----------

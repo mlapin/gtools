@@ -1,9 +1,9 @@
 gt-cmd(1)
-===========
+=========
 
 NAME
 ----
-gt-cmd - submit a single command
+gt-cmd - Submit a single command
 
 SYNOPSIS
 --------
@@ -20,8 +20,8 @@ TODO
 
 AUTHOR
 ------
-Maksim Lapin <mlapin@mpi-inf.mpg.de>
+Written by Maksim Lapin <mlapin@mpi-inf.mpg.de>.
 
-SEE ALSO
---------
-**gt**(1), **gt-file**(1).
+REPORTING BUGS
+--------------
+Issue tracking: http://github.com/mlapin/gtools/issues

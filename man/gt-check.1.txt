@@ -1,14 +1,14 @@
-gt-file(1)
-==========
+gt-check(1)
+===========
 
 NAME
 ----
-gt-file - Submit an array of commands listed in a file
+gt-check - Check if gtools are ready to use
 
 SYNOPSIS
 --------
 [verse]
-'gt file' [-g <size>] <file> [--] [<qsub args>...]
+'gt check' [<args>...]
 
 DESCRIPTION
 -----------

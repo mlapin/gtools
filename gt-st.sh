@@ -14,12 +14,12 @@ Commands:
     all       Show cluster summary over all users
 
 \`my' options:
-    -c        compact format
+    -s        give the output in the short format
     -r        display the requested resources (default)
     -w        display the working directory
 
 \`all' options:
-    -s        skip the cluster summary at the end
+    -s        skip the cluster summary at the end (short version)
 
 See \`man qstat' for qstat options.
 EOF
@@ -28,9 +28,9 @@ EOF
 show_my() {
   SHOW_DETAILS=1    # whether to show details or not
   SHOW_FIELD='res'  # which field to show in details
-  while getopts ":crw" opt; do
+  while getopts ":srw" opt; do
     case "${opt}" in
-      c) SHOW_DETAILS=0 ;;
+      s) SHOW_DETAILS=0 ;;
       r) SHOW_FIELD='res' ;;
       w) SHOW_FIELD='cwd' ;;
       \?) echo "${name}: unknown option: -$OPTARG" >&2; usage; exit 1 ;;

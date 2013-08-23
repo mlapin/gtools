@@ -1,14 +1,14 @@
-gt-file(1)
-==========
+gt-st(1)
+========
 
 NAME
 ----
-gt-file - Submit an array of commands listed in a file
+gt-st - Show the status of Grid Engine jobs and queues
 
 SYNOPSIS
 --------
 [verse]
-'gt file' [-g <size>] <file> [--] [<qsub args>...]
+'gt st' [--help] [<command> [options] | <qstat options>]
 
 DESCRIPTION
 -----------

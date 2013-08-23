@@ -1,14 +1,14 @@
-gt-file(1)
-==========
+gt-re(1)
+========
 
 NAME
 ----
-gt-file - Submit an array of commands listed in a file
+gt-re - Reschedule failed jobs
 
 SYNOPSIS
 --------
 [verse]
-'gt file' [-g <size>] <file> [--] [<qsub args>...]
+'gt re' [--help] [all | <job_id> ...]
 
 DESCRIPTION
 -----------

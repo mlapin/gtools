@@ -13,7 +13,8 @@ fi
 
 usage() {
   cat <<EOF
-usage: ${name/-/ } [--version] [--help] [--config <path>] [--dry-run] [--verbose]
+usage: ${name/-/ } [--version] [--help]
+          [--config <path>] [--dry-run] [--verbose]
           <command> [<args>]
 
 Commands:
@@ -23,7 +24,7 @@ Commands:
    file       Submit a set of commands listed in a file
    st         Show the status of submitted jobs
    re         Reschedule failed jobs
-   rm         Remove submitted jobs
+   rm         Remove jobs
 
 See \`${name/-/ } help <command>' for more information on a specific command.
 EOF
