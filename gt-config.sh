@@ -46,7 +46,13 @@ main() {
 # $(/bin/bash --version | head -n 1)
 
 # Maximum number of attempts to execute a command
-MAX_ATTEMPTS=${MAX_ATTEMPTS}
+MAX_ATTEMPTS="${MAX_ATTEMPTS}"
+
+# Path to the logs directory
+LOG_DIR="${LOG_DIR}"
+
+# Path to the temporary metadata storage
+META_DIR="${META_DIR}"
 
 # Default qsub options (see 'man qsub')
 # These options are always included in the qsub command (before any other args)
@@ -58,13 +64,6 @@ declare -A USER_QSUB_OPT=( $( \
   for key in "${!USER_QSUB_OPT[@]}"; do \
     printf "[%s]='%s' " "${key}" "${USER_QSUB_OPT[${key}]}"; \
   done; ))
-
-# Path to the scratch folder (temporary metadata storage)
-SCRATCH_DIR='${SCRATCH_DIR}'
-
-# If not empty, automatically delete user files in the scratch folder
-# when there are no user jobs in the cluster
-AUTO_CLEANUP=1
 
 EOF
 

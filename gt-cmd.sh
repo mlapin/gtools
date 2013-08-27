@@ -15,6 +15,7 @@ usage: ${name/-/ } [--help] [options] <command> [<args>] [-- <qsub options>]
     -v <M>    require h_vmem=M (example: -v 6G)
     -u <K>    add a user-defined option (available keys: ${!USER_QSUB_OPT[@]})
     -p        profile the command (report running time and resource usage)
+    -M        run MATLAB compiled code
 
 See \`man qsub' for qsub options.
 EOF
@@ -31,7 +32,8 @@ main() {
   # Parse known options
   USER_QSUB_KEY=()
   local timeit='no'
-  while getopts ":a:t:m:v:u:p" opt; do
+  local matlab='no'
+  while getopts ":a:t:m:v:u:pM" opt; do
     case "${opt}" in
       a) MAX_ATTEMPTS="${OPTARG}" ;;
       t) RES_TIME="${OPTARG}" ;;
@@ -39,6 +41,7 @@ main() {
       v) RES_VMEMORY="${OPTARG}" ;;
       u) USER_QSUB_KEY+=("${OPTARG}") ;;
       p) timeit='yes' ;;
+      M) matlab='yes' ;;
       \?) echo "${name}: unknown option: -$OPTARG" >&2; usage; exit 1 ;;
     esac
   done
@@ -82,8 +85,13 @@ main() {
   verbose "command args:" \
     "${cmd_args[@]:1}"
 
-  qsubmit -N "${cmd_name}" "${QSUB_OPT[@]}" \
-    "${LOCAL_DIR}/grun-cmd.sh" "${LOCAL_DIR}" "${MAX_ATTEMPTS}" "${timeit}" \
+  qsubmit -N "${cmd_name}" \
+    "${QSUB_OPT[@]}" \
+    "${LOCAL_DIR}/grun-cmd.sh" \
+    "${LOCAL_DIR}" \
+    "${MAX_ATTEMPTS}" \
+    "${timeit}" \
+    "${matlab}" \
     "${cmd_args[@]}"
 }
 

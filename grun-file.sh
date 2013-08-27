@@ -9,9 +9,10 @@ set -o pipefail
 
 MAX_ATTEMPTS="$2"
 timeit="$3"
-step="$4"
-cmd_file="$5"
-shift 5
+matlab="$4"
+step="$5"
+cmd_file="$6"
+shift 6
 
 # Setup traps to report received signals
 trap 'log_signal HUP' HUP
@@ -23,10 +24,20 @@ trap 'log_signal USR2' USR2
 trap 'log_signal XCPU' XCPU
 trap 'log_signal XFSZ' XFSZ
 
-# Report resource usage if profiling is requested
+# Report resource usage (profiling)
 unset timeit_cmd
 if [[ "${timeit}" = "yes" ]]; then
   timeit_cmd="${TIMEIT_CMD}"
+fi
+
+# Setup MATLAB MCR
+if [[ "${matlab}" = "yes" ]]; then
+  TMPDIR="$(mktemp -d)"
+  trap "rm -fr ${TMPDIR}" EXIT
+  export LD_LIBRARY_PATH="${MCR_LD_LIBRARY_PATH}"
+  export XAPPLRESDIR="${MCR_XAPPLRESDIR}"
+  export MCR_CACHE_SIZE="${MCR_CACHE_SIZE}"
+  export MCR_CACHE_ROOT="${TMPDIR}"
 fi
 
 msg="file \`${cmd_file}', line(s) ${SGE_TASK_ID}-$((${SGE_TASK_ID}+${step}-1))"

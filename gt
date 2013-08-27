@@ -22,6 +22,7 @@ Commands:
    config     Create a user config file
    cmd        Submit a single command
    file       Submit a set of commands listed in a file
+   mcc        Compile a Matlab function
    st         Show the status of submitted jobs
    re         Reschedule failed jobs
    rm         Remove jobs
@@ -43,7 +44,7 @@ show_help() {
         man "${MAN_DIR}/gt-$1.1"
         break
       else
-        unknown_command "$1"
+        echo "${name}: no manual entry for '$1'." >&2
         exit 1
       fi
       ;;

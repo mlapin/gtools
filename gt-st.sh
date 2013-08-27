@@ -14,12 +14,12 @@ Commands:
     all       Show cluster summary over all users
 
 \`my' options:
-    -s        give the output in the short format
+    -s        display the output in the short format
     -r        display the requested resources (default)
-    -w        display the working directory
+    -d        display the working directory
 
 \`all' options:
-    -s        skip the cluster summary at the end (short version)
+    -s        skip the cluster summary at the end
 
 See \`man qstat' for qstat options.
 EOF
@@ -28,11 +28,11 @@ EOF
 show_my() {
   SHOW_DETAILS=1    # whether to show details or not
   SHOW_FIELD='res'  # which field to show in details
-  while getopts ":srw" opt; do
+  while getopts ":srd" opt; do
     case "${opt}" in
       s) SHOW_DETAILS=0 ;;
       r) SHOW_FIELD='res' ;;
-      w) SHOW_FIELD='cwd' ;;
+      d) SHOW_FIELD='cwd' ;;
       \?) echo "${name}: unknown option: -$OPTARG" >&2; usage; exit 1 ;;
     esac
   done
@@ -50,8 +50,10 @@ how to submit a job)"
 
     # Remove temporary metadata files created for previous jobs (user specific)
     if [[ -n "${AUTO_CLEANUP}" ]]; then
-      cleanup_scratch && exit 0
+      cleanup_metadata || exit 1
     fi
+
+    exit 0
   fi
 
   # Get the list of job ids from the first line

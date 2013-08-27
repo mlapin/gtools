@@ -17,10 +17,29 @@ readonly START_TIME=$(date +%s%N)
 # (default is 2, i.e. reschedule once in case of failure)
 MAX_ATTEMPTS="${MAX_ATTEMPTS:-2}"
 
+# Path to the user config file
+CONFIG_FILE="${CONFIG_FILE:-"${HOME}/.gtrc"}"
+
+# Path to the logs directory
+LOG_DIR="${LOG_DIR:-"/scratch/common/pool0/${USER}/logs"}"
+LOG_SUBDIR="${LOG_SUBDIR:-"$(date +%F)"}"
+
+# Path to the temporary metadata storage
+META_DIR="${META_DIR:-"/scratch/common/pool0/.gtools"}"
+
+# Path to the folder with the gtools scripts
+LOCAL_DIR="${LOCAL_DIR:-"${0%/*}"}"
+
+# Path to the manuals
+MAN_DIR="${MAN_DIR:-"${LOCAL_DIR}/man"}"
+
 # Default qsub options (see 'man qsub')
 # These options are always included in the qsub command (before any other args)
 if [[ -z "${QSUB_OPT}" ]]; then
-  declare -a QSUB_OPT=(-cwd -V -r y -l h_rt=14400,h_vmem=4G,mem_free=1G)
+  declare -a QSUB_OPT=( \
+    -cwd -V -r y -j y -l h_rt=14400,h_vmem=4G,mem_free=1G \
+    -o "${LOG_DIR}/${LOG_SUBDIR}" -e "${LOG_DIR}/${LOG_SUBDIR}" \
+    )
 fi
 
 # Default user-defined qsub options (see 'man qsub')
@@ -33,18 +52,6 @@ if [[ -z "${USER_QSUB_OPT}" ]]; then
     )
 fi
 
-# Path to the user config file
-CONFIG_FILE="${CONFIG_FILE:-"$HOME/.gtrc"}"
-
-# Path to the scratch folder (temporary metadata storage)
-SCRATCH_DIR="${SCRATCH_DIR:-"/scratch/common/pool0/.gtools"}"
-
-# Path to the folder with the gtools scripts
-LOCAL_DIR="${LOCAL_DIR:-"${0%/*}"}"
-
-# Path to the manuals
-MAN_DIR="${LOCAL_DIR:-"$PWD"}/man"
-
 # Grid engine commands and hooks
 DEL_CMD="${DEL_CMD:-"qdel"}"
 MOD_CMD="${MOD_CMD:-"qmod"}"
@@ -55,15 +62,44 @@ PRE_HOOK="${PRE_HOOK:-"cd '${PWD}' && \
 source /n1_grid/current/inf/common/settings.sh"}"
 
 # The command for measuring running time and resource usage
-TIMEIT_CMD="${SUBMIT_CMD:-"/usr/bin/time -v"}"
+TIMEIT_CMD="${TIMEIT_CMD:-"/usr/bin/time -v"}"
 
-# If not empty, automatically delete user files in the scratch folder
+# If not empty, automatically delete user files in the metadata folder
 # when there are no user jobs in the cluster
 AUTO_CLEANUP=1
 
 # Show a notification message after the specified number of seconds
 # if an interactive command is taking longer to complete
 NOTIFY_AFTER=1
+
+
+#
+# MATLAB related options
+#
+
+# Matlab Compiler (mcc) options
+MCC_LIB_DIR="lib"
+MCC_OPTS="-R -singleCompThread -R -nodisplay -R -nosplash -v"
+
+# Matlab Compiler Runtime (MCR) options
+MCR_CACHE_ROOT="/var/tmp"
+MCR_CACHE_SIZE="256M"
+
+MCRROOT="/local/gridengine/general/MATLAB_Compiler_Runtime/v81"
+if [[ ! -d "${MCRROOT}" ]]; then
+  MCRROOT="/BS/opt/local/MATLAB_Compiler_Runtime/v81"
+fi
+
+MCRJRE="${MCRROOT}/sys/java/jre/glnxa64/jre/lib/amd64"
+MCR_XAPPLRESDIR="${MCRROOT}/X11/app-defaults"
+MCR_LD_LIBRARY_PATH=".\
+:${MCRROOT}/runtime/glnxa64\
+:${MCRROOT}/bin/glnxa64\
+:${MCRROOT}/sys/os/glnxa64\
+:${MCRJRE}/native_threads\
+:${MCRJRE}/server\
+:${MCRJRE}/client\
+:${MCRJRE}"
 
 ################################################################################
 
@@ -73,7 +109,7 @@ RET_STOP="${RET_STOP:-100}"   # sets the job into error state
 
 # Job statuses (regex for matching qstat output in gawk)
 STAT_RUNNING="${STAT_RUNNING:-"/[rt]/"}"
-STAT_WAITING="${STAT_WAITING:-"/^[Rhqw ]*$/"}"
+STAT_WAITING="${STAT_WAITING:-"/^R?[hqw ]+$/"}"
 STAT_ERROR="${STAT_ERROR:-"/[E]/"}"
 
 # Job and task IDs
@@ -96,6 +132,9 @@ qsubmit() {
   JOB_ID=$(run_on_submit_host "${SUBMIT_CMD}" -notify -terse "$@" |
     sed -n -e 's/^\([0-9]\+\).*/\1/p')
   verbose "job id: ${JOB_ID}"
+  if [[ -n "${LOG_SUBDIR}" ]]; then
+    mkdir -p "${LOG_DIR}/${LOG_SUBDIR}"
+  fi
   echo "${JOB_ID}"
 }
 
@@ -168,10 +207,11 @@ update_qsub_opt() {
 }
 
 command_failed() {
+  local code=$?
   # Append a dot '.' to the job/task file to count the number of attempts,
   # then check its size to decide whether to stop or retry
-  mkdir -p "${SCRATCH_DIR}/${JOB_ID}"
-  local fname="${SCRATCH_DIR}/${JOB_ID}/${TID}"
+  mkdir -p "${META_DIR}/${JOB_ID}"
+  local fname="${META_DIR}/${JOB_ID}/${TID}"
   printf '.' >> "${fname}"
 
   # Read the file into a local variable
@@ -180,15 +220,15 @@ command_failed() {
 
   # Decide whether to stop or retry (reschedule)
   if [[ ${#attempts} -lt ${MAX_ATTEMPTS} ]]; then
-    log_error "RETRY (${#attempts}/${MAX_ATTEMPTS}): $@"
+    log_error "RETRY (${#attempts}/${MAX_ATTEMPTS}): ${code}: $@"
     exit ${RET_RESUB}
   else
-    log_error "STOP (${#attempts}/${MAX_ATTEMPTS}): $@"
+    log_error "STOP (${#attempts}/${MAX_ATTEMPTS}): ${code}: $@"
     exit ${RET_STOP}
   fi
 }
 
-cleanup_scratch() {
+cleanup_metadata() {
   # Check that the $USER variable is not overriden
   local user1
   user1=$(/usr/bin/whoami) || echo "${name}: whoami failed" >&2
@@ -198,16 +238,16 @@ cleanup_scratch() {
   fi
 
   # Show a notification message if the command is taking too long
-  local pid
-  { sleep "${NOTIFY_AFTER}"; echo "${name}: performing cleanup..." >&2; } \
-    & pid=$!
+  { sleep "${NOTIFY_AFTER}"; echo "${name}: performing cleanup..." >&2; } &
+  local pid=$!
 
-  # Delete all files/folders of the current user in the scratch directory
-  find "${SCRATCH_DIR}/*" -user "${user1}" "$@" -delete 2>&1 \
-    | grep 'cannot' >&2
+  # Delete all files/folders of the current user in the metadata directory
+  # (but not the metadata folder itself)
+  find "${META_DIR}" -user "${user1}" -not -path "${META_DIR}" \
+    -delete 2>&1 | grep 'cannot' >&2
 
   # Kill the notification subprocess if it hasn't quit yet
-  kill "${pid}" >/dev/null 2>&1
+  kill "${pid}" >/dev/null 2>&1 || :
 }
 
 log_error() {
