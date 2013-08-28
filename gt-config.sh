@@ -51,6 +51,15 @@ MAX_ATTEMPTS="${MAX_ATTEMPTS}"
 # Path to the logs directory
 LOG_DIR="${LOG_DIR}"
 
+# Expression for the name of the logs subdirectory
+# If not empty, this expression will be evaluated at submission time
+# and the corresponding folder will be created as a subfolder of LOG_DIR.
+# Has limited support for variables:
+#   only $HOME, $USER, $JOB_ID, and $JOB_NAME can be used,
+#   the variables must appear exactly as given above (i.e. no curly braces),
+#   avoid the underscore character (causes ambiguities in variable names).
+#LOG_SUBDIR="\$JOB_ID-\$JOB_NAME"
+
 # Path to the temporary metadata storage
 META_DIR="${META_DIR}"
 

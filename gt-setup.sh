@@ -22,7 +22,15 @@ CONFIG_FILE="${CONFIG_FILE:-"${HOME}/.gtrc"}"
 
 # Path to the logs directory
 LOG_DIR="${LOG_DIR:-"/scratch/common/pool0/${USER}/logs"}"
-LOG_SUBDIR="${LOG_SUBDIR:-"$(date +%F)"}"
+
+# Expression for the name of the logs subdirectory
+# If not empty, this expression will be evaluated at submission time
+# and the corresponding folder will be created as a subfolder of LOG_DIR.
+# Has limited support for variables:
+#   only $HOME, $USER, $JOB_ID, and $JOB_NAME can be used,
+#   the variables must appear exactly as given above (i.e. no curly braces),
+#   avoid the underscore character (causes ambiguities in variable names).
+LOG_SUBDIR="${LOG_SUBDIR:-"\$JOB_ID-\$JOB_NAME"}"
 
 # Path to the temporary metadata storage
 META_DIR="${META_DIR:-"/scratch/common/pool0/.gtools"}"
@@ -126,15 +134,25 @@ unknown_command() {
 }
 
 qsubmit() {
+  # Parse the given options and set the corresponding environment variables
+  # (these variables can be used e.g. in the LOG_SUBDIR)
+  parse_qsub_opt "$@"
+
   # -notify enables USR2 signal, which is fired e.g. when the h_rt limit is hit
   # the wrapper scripts handle this as if the command failed (nonzero exit code)
   # -terse forces qsub to output only the job id upon successful submission
   JOB_ID=$(run_on_submit_host "${SUBMIT_CMD}" -notify -terse "$@" |
     sed -n -e 's/^\([0-9]\+\).*/\1/p')
   verbose "job id: ${JOB_ID}"
+
+  # If LOG_SUBDIR is not empty, eval it to perform variable substitution
+  # and attempt to create the corresponding subdirectory
+  # (the Grid Engine does not create directories, hence this workaround)
   if [[ -n "${LOG_SUBDIR}" ]]; then
-    mkdir -p "${LOG_DIR}/${LOG_SUBDIR}"
+    eval "subdir=${LOG_SUBDIR}"
+    mkdir -p "${LOG_DIR}/${subdir}"
   fi
+
   echo "${JOB_ID}"
 }
 
@@ -178,8 +196,19 @@ read_config() {
   fi
 }
 
+parse_qsub_opt() {
+  # Cannot use getopts because it would stop at the first non-option argument
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -N) shift; JOB_NAME="$1" ;;
+    esac
+    shift
+  done
+}
+
 update_qsub_opt() {
-  # First, start with the default qsub options (see definition of QSUB_OPT)
+  # First, start with the default qsub options
+  # (see the definition of QSUB_OPT)
 
   # Second, add any user-defined options if requested by the -u <key> option
   for key in "${USER_QSUB_KEY[@]}"; do
@@ -202,12 +231,19 @@ update_qsub_opt() {
   fi
 
   # Finally, add any other options given directly in the command line
-  # these typically appear after the '--' at the end
+  # (these typically appear after the '--' at the end)
   QSUB_OPT+=("$@")
 }
 
 command_failed() {
   local code=$?
+
+  # Skip the retry/stop workflow and just exit
+  if [[ ${MAX_ATTEMPTS} -lt 1 ]]; then
+    log_error "ERROR: ${code}: $@"
+    exit ${code}
+  fi
+
   # Append a dot '.' to the job/task file to count the number of attempts,
   # then check its size to decide whether to stop or retry
   mkdir -p "${META_DIR}/${JOB_ID}"
@@ -220,10 +256,10 @@ command_failed() {
 
   # Decide whether to stop or retry (reschedule)
   if [[ ${#attempts} -lt ${MAX_ATTEMPTS} ]]; then
-    log_error "RETRY (${#attempts}/${MAX_ATTEMPTS}): ${code}: $@"
+    log_error "ERROR: ${code}: RETRY (${#attempts}/${MAX_ATTEMPTS}): $@"
     exit ${RET_RESUB}
   else
-    log_error "STOP (${#attempts}/${MAX_ATTEMPTS}): ${code}: $@"
+    log_error "ERROR: ${code}: STOP (${#attempts}/${MAX_ATTEMPTS}): $@"
     exit ${RET_STOP}
   fi
 }

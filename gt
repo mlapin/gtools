@@ -59,7 +59,7 @@ main() {
 
   abspath="$(readlink -f "$0")"
   LOCAL_DIR="${abspath%/*}" # used in the setup script
-  . "${LOCAL_DIR}/gt-setup.sh"
+  . "${LOCAL_DIR}/gt-setup.sh" || exit 1
 
   read_config "$@"
 

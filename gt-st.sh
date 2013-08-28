@@ -14,12 +14,12 @@ Commands:
     all       Show cluster summary over all users
 
 \`my' options:
-    -s        display the output in the short format
+    -s        display the output in the short format (one line per job)
     -r        display the requested resources (default)
     -d        display the working directory
 
 \`all' options:
-    -s        skip the cluster summary at the end
+    -s        display the output in the short format (no cluster summary)
 
 See \`man qstat' for qstat options.
 EOF
@@ -101,6 +101,13 @@ get_my_jobs() {
 }
 
 show_my_details() {
+  # Use the short string format unless (more) details have been requested
+  local sfmt='%.20s'
+  if [[ ${SHOW_DETAILS} -eq 1 ]]; then
+    sfmt='%s'
+  fi
+
+  # Display job details
   details=$(qstatus -j "${jobids}")
   gawk \
     'function print_title(title, color) {
@@ -119,7 +126,7 @@ show_my_details() {
     /^error$/ { print_title("Failed jobs", "'"${FONT_RED}"'") }
     /^other$/ { print_title("Other jobs", "'"${FONT_BLUE}"'") }
     /^[0-9]+ / { if (report) {
-      printf("%s %s %-5s %10s '"${FONT_BOLD}"'%s'"${FONT_NORM}"' %s\n",
+      printf("%s %s %-5s %10s '"${FONT_BOLD} ${sfmt} ${FONT_NORM} ${sfmt}"'\n",
         $1, $2, $3, tasks[$1], name[$1], $4)
       if ('"${SHOW_DETAILS}"') {
         printf("%7s %s %s\n", "", time[$1], '"${SHOW_FIELD}"'[$1])
@@ -129,9 +136,10 @@ show_my_details() {
 }
 
 show_all() {
+  SHOW_DETAILS=1
   while getopts ":s" opt; do
     case "${opt}" in
-      s) SKIP_SUMMARY=1 ;;
+      s) SHOW_DETAILS=0 ;;
       \?) echo "${name}: unknown option: -$OPTARG" >&2; usage; exit 1 ;;
     esac
   done
@@ -183,7 +191,7 @@ show_all() {
     }'
 
   # Display overall cluster summary
-  if [[ -z "${SKIP_SUMMARY}" ]]; then
+  if [[ ${SHOW_DETAILS} -eq 1 ]]; then
     qstatus -g c
   fi
 }

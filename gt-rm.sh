@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# Deletes grid engine jobs
+# Removes grid engine jobs
 set -e
 set -o pipefail
 name="${GT_NAME}-rm"
 
 usage() {
   cat <<EOF
-usage: ${name/-/ } [--help] [all [-f] | failed | <job_id> ...]
+usage: ${name/-/ } [--help] [all [-f] | failed | <job_id>...]
 
     -f    do not prompt to confirm deletion of all user jobs
 EOF
@@ -23,10 +23,10 @@ delete_all() {
   shift $((${OPTIND}-1))
 
   if [[ -z "${force}" ]]; then
-    read -p "Delete all ${USER}'s jobs (y/n)? " -n 1 -r
+    read -p "Remove all ${USER}'s jobs (y/n)? " -n 1 -r
     echo
     if [[ ! "${REPLY}" =~ ^[Yy]$ ]]; then
-        echo "${name}: no jobs deleted"
+        echo "${name}: no jobs removed"
         exit 0
     fi
   fi
@@ -36,18 +36,28 @@ delete_all() {
 }
 
 delete_failed() {
-  # Get job ids of failed jobs (in error state)
-  myjobs=$(qstatus -u "${USER}" | gawk --re-interval '/^.{40,45}E/{print $1}')
+  # Get all user jobs that are in the error state and are not running
+  local failed
+  failed=$(qstatus -u "${USER}" \
+    | gawk \
+    'BEGIN { rj[""] = "" }
+    NR <= 2 { next }
+    { status = substr($0, 41, 5) }
+    status ~ '"${STAT_RUNNING}"' { rj[$1] = $1 }
+    status ~ '"${STAT_ERROR}"' && !($1 in rj) { print $1 }')
 
-  verbose "${myjobs}"
+  verbose "${failed}"
 
-  if [[ -z "${myjobs}" ]]; then
-    echo "${name}: no failed jobs to delete"
+  if [[ -z "${failed}" ]]; then
+    echo "${name}: no failed jobs to remove"
+    echo "  (failed jobs that are still running are excluded)"
+    echo "  (use \`${name/-/ } <job_id>...' to delete specific jobs)"
+    echo "  (use \`${name/-/ } all' to delete all user jobs)"
     exit 0
   fi
 
   # Delete these jobs
-  qdelete ${myjobs//\n/ } # no quotes, each job id is an argument
+  qdelete ${failed//\n/ } # no quotes, each job id is an argument
 }
 
 main() {
