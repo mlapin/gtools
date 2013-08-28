@@ -2,7 +2,6 @@
 #
 # Compiles MATLAB function into a standalone application
 set -e
-set -o pipefail
 name="${GT_NAME}-mcc"
 
 usage() {

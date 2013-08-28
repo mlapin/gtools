@@ -3,7 +3,6 @@
 #
 # Executes a command
 set -e
-set -o pipefail
 
 . "$1/gt-setup.sh"
 

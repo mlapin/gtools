@@ -2,7 +2,6 @@
 #
 # Submits a single command
 set -e
-set -o pipefail
 name="${GT_NAME}-cmd"
 
 usage() {

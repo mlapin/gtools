@@ -2,7 +2,6 @@
 #
 # Defines common constants, functions, and default values
 set -e
-set -o pipefail
 unset VERSION
 unset START_TIME
 readonly VERSION=0.1

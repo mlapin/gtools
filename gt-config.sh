@@ -2,7 +2,6 @@
 #
 # Creates a user config file
 set -e
-set -o pipefail
 name="${GT_NAME}-config"
 
 usage() {

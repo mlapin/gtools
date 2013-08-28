@@ -2,7 +2,6 @@
 #
 # Shows the status of grid engine jobs and queues
 set -e
-set -o pipefail
 name="${GT_NAME}-st"
 
 usage() {

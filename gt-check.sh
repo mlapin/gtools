@@ -2,7 +2,6 @@
 #
 # Checks if gtools are ready to use
 set -e
-set -o pipefail
 name="${GT_NAME}-check"
 
 usage() {

@@ -2,7 +2,6 @@
 #
 # Reschedules failed jobs
 set -e
-set -o pipefail
 name="${GT_NAME}-re"
 
 usage() {

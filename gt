@@ -2,7 +2,6 @@
 #
 # Submits grid engine jobs
 set -e
-set -o pipefail
 GT_NAME="${0##*/}"
 name="${GT_NAME}"
 

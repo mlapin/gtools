@@ -2,7 +2,6 @@
 #
 # Submits a set of commands listed in a file
 set -e
-set -o pipefail
 name="${GT_NAME}-file"
 
 usage() {

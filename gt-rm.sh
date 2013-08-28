@@ -2,7 +2,6 @@
 #
 # Removes grid engine jobs
 set -e
-set -o pipefail
 name="${GT_NAME}-rm"
 
 usage() {

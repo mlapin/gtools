@@ -3,7 +3,6 @@
 #
 # Executes commands from a file
 set -e
-set -o pipefail
 
 . "$1/gt-setup.sh"
 
@@ -45,5 +44,5 @@ msg="file \`${cmd_file}', line(s) ${SGE_TASK_ID}-$((${SGE_TASK_ID}+${step}-1))"
 # Feed a portion of the commands file to bash
 tail -n +"${SGE_TASK_ID}" "${cmd_file}" \
   | head -n "${step}" \
-  | ${timeit_cmd} /bin/bash -e -o pipefail \
+  | ${timeit_cmd} /bin/bash -e \
   || command_failed "${msg}"
