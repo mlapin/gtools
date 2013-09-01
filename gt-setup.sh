@@ -63,6 +63,7 @@ fi
 DEL_CMD="${DEL_CMD:-"qdel"}"
 MOD_CMD="${MOD_CMD:-"qmod"}"
 STAT_CMD="${STAT_CMD:-"qstat"}"
+ALTER_CMD="${ALTER_CMD:-"qalter"}"
 SUBMIT_CMD="${SUBMIT_CMD:-"qsub"}"
 SUBMIT_HOST="${SUBMIT_HOST:-"submit-squeeze"}"
 PRE_HOOK="${PRE_HOOK:-"cd '${PWD}' && \
@@ -115,7 +116,7 @@ RET_RESUB="${RET_RESUB:-99}"  # reschedules the job/task
 RET_STOP="${RET_STOP:-100}"   # sets the job into error state
 
 # Job statuses (regex for matching qstat output in gawk)
-STAT_RUNNING="${STAT_RUNNING:-"/[rt]/"}"
+STAT_RUNNING="${STAT_RUNNING:-"/^R?[rt ]+$/"}"
 STAT_WAITING="${STAT_WAITING:-"/^R?[hqw ]+$/"}"
 STAT_ERROR="${STAT_ERROR:-"/[E]/"}"
 
@@ -165,6 +166,10 @@ qresubmit() {
 
 qdelete() {
   run_on_submit_host "${DEL_CMD}" "$@"
+}
+
+qalter() {
+  run_on_submit_host "${ALTER_CMD}" "$@"
 }
 
 run_on_submit_host() {

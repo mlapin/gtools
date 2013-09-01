@@ -221,7 +221,7 @@ main() {
         show_help "st"
         break
         ;;
-      my)
+      my|me)
         shift
         show_my "$@"
         break

@@ -69,7 +69,7 @@ main() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --help|help)
-        show_help "del"
+        show_help "rm"
         break
         ;;
       all)
