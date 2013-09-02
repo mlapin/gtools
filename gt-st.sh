@@ -75,7 +75,7 @@ get_my_jobs() {
     'function print_sorted(jobs, title) {
       print title
       n = asorti(jobs, sorted)
-      for (i = n; i >= 1; i--) print jobs[sorted[i]]
+      for (i = 1; i <= n; i++) print jobs[sorted[i]]
     }
     NR <= 2 { next }
     { t = r + e + w
