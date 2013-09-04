@@ -116,7 +116,7 @@ RET_RESUB="${RET_RESUB:-99}"  # reschedules the job/task
 RET_STOP="${RET_STOP:-100}"   # sets the job into error state
 
 # Job statuses (regex for matching qstat output in gawk)
-STAT_RUNNING="${STAT_RUNNING:-"/^R?[rt ]+$/"}"
+STAT_RUNNING="${STAT_RUNNING:-"/^[hR]*[rt ]+$/"}"
 STAT_WAITING="${STAT_WAITING:-"/^R?[hqw ]+$/"}"
 STAT_ERROR="${STAT_ERROR:-"/[E]/"}"
 
