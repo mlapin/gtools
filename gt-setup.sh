@@ -13,8 +13,8 @@ readonly START_TIME=$(date +%s%N)
 #
 
 # Maximum number of attempts to execute a command
-# (default is 2, i.e. reschedule once in case of failure)
-MAX_ATTEMPTS="${MAX_ATTEMPTS:-2}"
+# (default is 1, i.e. do not reschedule in case of failure)
+MAX_ATTEMPTS="${MAX_ATTEMPTS:-1}"
 
 # Path to the user config file
 CONFIG_FILE="${CONFIG_FILE:-"${HOME}/.gtrc"}"
