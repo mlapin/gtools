@@ -25,6 +25,7 @@ Commands:
    st         Show the status of submitted jobs
    re         Reschedule failed jobs
    rm         Remove jobs
+   alter      Modify jobs
 
 See \`${name/-/ } help <command>' for more information on a specific command.
 EOF
