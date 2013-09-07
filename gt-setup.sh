@@ -44,7 +44,7 @@ MAN_DIR="${MAN_DIR:-"${LOCAL_DIR}/man"}"
 # These options are always included in the qsub command (before any other args)
 if [[ -z "${QSUB_OPT}" ]]; then
   declare -a QSUB_OPT=( \
-    -cwd -V -r y -j y -l h_rt=14400,h_vmem=4G,mem_free=1G \
+    -cwd -V -r y -j y -l 'h_rt=14400,h_vmem=2G,mem_free=2G' \
     -o "${LOG_DIR}/${LOG_SUBDIR}" -e "${LOG_DIR}/${LOG_SUBDIR}" \
     )
 fi
@@ -86,7 +86,11 @@ NOTIFY_AFTER=1
 #
 
 # Matlab Compiler (mcc) options
-MCC_LIB_DIR="lib"
+# Run this file in Matlab before running mcc (allows to addpath)
+MCC_INIT_FILE=""
+# Add all libraries in this folder by default (uses the -a mcc option)
+MCC_LIB_DIR=
+# Use these mcc options
 MCC_OPTS="-R -singleCompThread -R -nodisplay -R -nosplash -v"
 
 # Matlab Compiler Runtime (MCR) options
@@ -175,7 +179,7 @@ qalter() {
 run_on_submit_host() {
   if [[ -n "${VERBOSE}" || -n "${DRY_RUN}" ]]; then
     echo "command to execute:" >&2
-    verbose "$@"
+    verbose_nocheck "$@"
   fi
   if [[ -n "${DRY_RUN}" ]]; then
     echo "dry run: command not executed." >&2
@@ -304,10 +308,14 @@ log_signal() {
 
 verbose() {
   if [[ -n "${VERBOSE}" ]]; then
-    echo "$1" >&2
-    if [[ $# -gt 1 ]]; then
-      print_args "${@:2}"
-    fi
+    verbose_nocheck "$@"
+  fi
+}
+
+verbose_nocheck() {
+  echo "$1" >&2
+  if [[ $# -gt 1 ]]; then
+    print_args "${@:2}"
   fi
 }
 
