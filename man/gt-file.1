@@ -1,0 +1,143 @@
+'\" t
+.\"     Title: gt-file
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 09/21/2013
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "GT\-FILE" "1" "09/21/2013" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+gt-file \- Submit an array of commands listed in a file
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIgt file\fR [\-\-help] [options] <file> [\-\- <qsub options>]
+.fi
+.SH "OPTIONS"
+.PP
+\-g <N>, \-g all
+.RS 4
+group commands into batches (N lines per group, default: N=1) use
+\fI\-g all\fR
+to submit all commands in a single batch
+.RE
+.PP
+\-a <N>
+.RS 4
+make N attempts (resubmit up to N\-1 times if command fails)
+.RE
+.PP
+\-t <T>
+.RS 4
+require h_rt=T (example: \-t 4:00:00 or \-t 14400)
+.RE
+.PP
+\-m <M>
+.RS 4
+require mem_free=M (example: \-m 1G)
+.RE
+.PP
+\-v <M>
+.RS 4
+require h_vmem=M (example: \-v 6G)
+.RE
+.PP
+\-u <K>
+.RS 4
+add a user\-defined option
+.RE
+.PP
+\-p
+.RS 4
+profile the command (report time and resource usage)
+.RE
+.PP
+\-M
+.RS 4
+run MATLAB compiled code
+.RE
+.sp
+See \(oqman qsub\(cq for qsub options\&.
+.SH "DESCRIPTION"
+.sp
+A wrapper around \fIqsub\fR with a similar functionality as the \fIcommands2arrayjob\&.sh\fR script\&.
+.sp
+Each line in a file corresponds to a single task that is executed via the Bash shell\&. Hence, all these things are allowed and should work: variable substitution (e\&.g\&. $JOB_ID, $SGE_TASK_ID, etc), pipes (|), and (&&), semicolon (;), comments (#), etc\&.
+.sp
+Note: every line must end with a newline character (\en), in particular, the last line as well (otherwise it will not be included)\&. This is due to the way \fIwc \-l\fR counts lines\&.
+.sp
+The above listed options apply to the \fIgt file\fR script only\&. The script will also use the default qsub options (if any) defined in \fIgt\-setup\fR and the user config\&. These can be overriden by specifying new values after the \(em (see examples)\&.
+.sp
+To see all the qsub option that will be used without actually submitting a job use \fIgt \-\-dry\-run file \&...\fR\&.
+.SH "EXAMPLES"
+.PP
+Submit the commands\&.txt file as an array job (one line one task)\&.
+.RS 4
+gt file commands\&.txt
+.RE
+.PP
+Submit an array job with groups of 10 lines per task\&.
+.RS 4
+gt file \-g 10 commands\&.txt
+.RE
+.PP
+Submit a job with a single task that includes all lines\&.
+.RS 4
+gt file \-g all commands\&.txt
+.RE
+.PP
+Use the standard qsub options to override e\&.g\&. the inferred name\&.
+.RS 4
+gt file commands\&.txt \(em \-N
+\fIMy commands\fR
+.RE
+.PP
+Request 2 days of wallclock time and 8G of virtual memory per task\&.
+.RS 4
+gt file \-t 48:00:00 \-v 8G commands\&.txt
+.RE
+.PP
+Submit to D2 cluster (D2blade|D2compute|D2parallel)\&.
+.RS 4
+gt file \-u d2 commands\&.txt
+.RE
+.PP
+Profile each task via the \fI/usr/bin/time \-v\fR\&.
+.RS 4
+gt file \-p commands\&.txt
+.RE
+.PP
+Run MATLAB compiled code (sets all the necessary environment variables)\&.
+.RS 4
+gt file \-M commands\&.txt Note: the MCRROOT may need to be overriden in user config and should point to the MATLAB Compiler Runtime of the appropriate version\&.
+.RE
+.SH "SEE ALSO"
+.sp
+\fBgt\fR, \fBgt st\fR, \fBgt cmd\fR
+.SH "AUTHOR"
+.sp
+Written by Maksim Lapin\&.
+.SH "REPORTING BUGS"
+.sp
+http://github\&.com/mlapin/gtools/issues

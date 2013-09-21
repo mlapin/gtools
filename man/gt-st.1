@@ -1,0 +1,193 @@
+'\" t
+.\"     Title: gt-st
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 09/21/2013
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "GT\-ST" "1" "09/21/2013" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+gt-st \- Show the status of Grid Engine jobs and queues
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIgt st\fR[\-\-help] [<command> [options] | <qstat options>]
+.fi
+.SH "COMMANDS"
+.PP
+my
+.RS 4
+Show detailed user jobs summary (default)
+.RE
+.PP
+all
+.RS 4
+Show cluster summary over all users
+.RE
+.SH "OPTIONS (MY)"
+.PP
+\-s
+.RS 4
+display the output in the short format (one line per job)
+.RE
+.PP
+\-r
+.RS 4
+display the requested resources (default)
+.RE
+.PP
+\-d
+.RS 4
+display the working directory
+.RE
+.SH "OPTIONS (ALL)"
+.PP
+\-s
+.RS 4
+display the output in the short format (no cluster summary)
+.RE
+.SH "OPTIONS (QSTAT)"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+See `man qstat\*(Aq for qstat options\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "DESCRIPTION"
+.sp
+A wrapper around qstat\&.
+.sp
+The \fIgt st\fR command operates in three regimes described below\&.
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 1.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  1." 4.2
+.\}
+(default) User jobs summary\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+`gt st`
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+`gt st my [options]`
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+`gt st me [options]`
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 2.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  2." 4.2
+.\}
+All jobs summary\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+`gt st all [options]`
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 3.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  3." 4.2
+.\}
+The standard qstat\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+`gt st [<qstat options>]`
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.SH "EXAMPLES"
+.PP
+Check status of my jobs\&.
+.RS 4
+gt st
+.RE
+.PP
+Check cluster summary\&.
+.RS 4
+gt st all
+.RE
+.PP
+Check job details (standard qstat)\&.
+.RS 4
+gt st \-j <job_id>
+.RE
+.SH "SEE ALSO"
+.sp
+\fBgt\fR, \fBgt cmd\fR, \fBgt file\fR
+.SH "AUTHOR"
+.sp
+Written by Maksim Lapin\&.
+.SH "REPORTING BUGS"
+.sp
+http://github\&.com/mlapin/gtools/issues

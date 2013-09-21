@@ -1,0 +1,113 @@
+'\" t
+.\"     Title: gt-cmd
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 09/21/2013
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "GT\-CMD" "1" "09/21/2013" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+gt-cmd \- Submit a single command
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIgt cmd\fR [\-\-help] [options] <command> [<args>] [\-\- <qsub options>]
+.fi
+.SH "OPTIONS"
+.PP
+\-a <N>
+.RS 4
+make N attempts (resubmit up to N\-1 times if command fails)
+.RE
+.PP
+\-t <T>
+.RS 4
+require h_rt=T (example: \-t 4:00:00 or \-t 14400)
+.RE
+.PP
+\-m <M>
+.RS 4
+require mem_free=M (example: \-m 1G)
+.RE
+.PP
+\-v <M>
+.RS 4
+require h_vmem=M (example: \-v 6G)
+.RE
+.PP
+\-u <K>
+.RS 4
+add a user\-defined option
+.RE
+.PP
+\-p
+.RS 4
+profile the command (report running time and resource usage)
+.RE
+.PP
+\-M
+.RS 4
+run MATLAB compiled code
+.RE
+.sp
+See \(oqman qsub\(cq for qsub options\&.
+.SH "DESCRIPTION"
+.sp
+A wrapper around \fIqsub\fR\&.
+.sp
+The above listed options apply to the \fIgt cmd\fR script only\&. The script will also use the default qsub options (if any) defined in \fIgt\-setup\fR and the user config\&. These can be overriden by specifying new values after the \(em (see examples)\&.
+.sp
+To see all the qsub option that will be used without actually submitting a job use \fIgt \-\-dry\-run cmd \&...\fR\&.
+.SH "EXAMPLES"
+.PP
+Echo the job_id to the log file\&.
+.RS 4
+gt cmd echo \e$JOB_ID
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+Note that the $ is escaped so that the variable is not substituted
+at submit time\&.
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.PP
+Use the standard qsub options to override e\&.g\&. the inferred name\&.
+.RS 4
+gt cmd echo \e$JOB_ID \(em \-N
+\fIMy echo\fR
+.RE
+.SH "SEE ALSO"
+.sp
+\fBgt\fR, \fBgt st\fR, \fBgt file\fR
+.SH "AUTHOR"
+.sp
+Written by Maksim Lapin\&.
+.SH "REPORTING BUGS"
+.sp
+http://github\&.com/mlapin/gtools/issues
