@@ -6,7 +6,7 @@ name="${GT_NAME}-rm"
 
 usage() {
   cat <<EOF
-usage: ${name/-/ } [--help] [all [-f] | failed | <job_id>...]
+usage: ${name/-/ } [--help] failed | [all [-f] | <job_id>...]
 
     -f    do not prompt to confirm deletion of all user jobs
 EOF

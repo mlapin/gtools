@@ -14,7 +14,7 @@ SYNOPSIS
 DESCRIPTION
 -----------
 'gt' is a collection of tools that make certain tasks easier when working
-with the Oracle (Sun) Grid Engine.
+with the (Sun/Oracle) Grid Engine.
 
 The common tasks include submitting a single command or a batch of commands,
 checking jobs' status, and rescheduling or removing failed jobs.
@@ -79,10 +79,14 @@ Submit a job array (every line in commands.txt is a separate command).::
 Show the status of submitted jobs.::
   gt st
 
+SEE ALSO
+--------
+*gt st*, *gt cmd*, *gt file*
+
 AUTHOR
 ------
-Written by Maksim Lapin <mlapin@mpi-inf.mpg.de>.
+Written by Maksim Lapin.
 
 REPORTING BUGS
 --------------
-Issue tracking: http://github.com/mlapin/gtools/issues
+http://github.com/mlapin/gtools/issues

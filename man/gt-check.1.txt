@@ -8,20 +8,31 @@ gt-check - Check if gtools are ready to use
 SYNOPSIS
 --------
 [verse]
-'gt check' [<args>...]
+'gt check' [--help] [options]
+
+OPTIONS
+-------
+-v::
+  display all declared variables
 
 DESCRIPTION
 -----------
-TODO
+Run some sanity checks to see if gtools are ready.
 
-EXAMPLES
+'gt check -v' will display all environment variables
+after sourcing all the setup and user config scripts.
+
+This can be used e.g. to quickly check which paths
+the wrapper scripts will use.
+
+SEE ALSO
 --------
-TODO
+*gt config*
 
 AUTHOR
 ------
-Written by Maksim Lapin <mlapin@mpi-inf.mpg.de>.
+Written by Maksim Lapin.
 
 REPORTING BUGS
 --------------
-Issue tracking: http://github.com/mlapin/gtools/issues
+http://github.com/mlapin/gtools/issues

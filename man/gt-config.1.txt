@@ -8,20 +8,34 @@ gt-config - Create a user config file
 SYNOPSIS
 --------
 [verse]
-'gt config' [<args>...]
+'gt config' [--help] [options]
+
+OPTIONS
+-------
+-f::
+  overwrite the config file if it already exists
 
 DESCRIPTION
 -----------
-TODO
+Creates a user config that can be used to override default settings.
 
-EXAMPLES
+The config is simply a bash script that is sourced by the wrapper scripts.
+
+Warning: using the -f option to overwrite the existing config file
+will NOT restore the default settings if they were overriden in the existing
+file (as that file would be sourced before the new file is written).
+
+If you need to restore to the default settings simply remove the existing
+config file manually.
+
+SEE ALSO
 --------
-TODO
+*gt check*
 
 AUTHOR
 ------
-Written by Maksim Lapin <mlapin@mpi-inf.mpg.de>.
+Written by Maksim Lapin.
 
 REPORTING BUGS
 --------------
-Issue tracking: http://github.com/mlapin/gtools/issues
+http://github.com/mlapin/gtools/issues

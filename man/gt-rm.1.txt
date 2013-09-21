@@ -8,20 +8,52 @@ gt-rm - Remove Grid Engine jobs
 SYNOPSIS
 --------
 [verse]
-'gt rm' [--help] [all [-f] | failed | <job_id>[ ...]]
+'gt rm' [--help] failed | [all [-f] | <job_id>[ ...]]
+
+COMMANDS
+--------
+failed::
+  Remove failed user jobs.
+
+all::
+  Remove all user jobs.
+
+OPTIONS (ALL)
+-------------
+-f::
+  do not prompt to confirm deletion of all user jobs
 
 DESCRIPTION
 -----------
-TODO
+A wrapper around qdel.
+
+Removes user jobs specified using one of the three options described below.
+
+1. (default) Remove failed user jobs.
+  Note: 'gt rm' does not delete a failed job if it has running tasks.
+  To delete such a job use 'gt rm <job_id>'.
+
+  'gt rm'
+
+  'gt rm failed'
+
+2. Remove all user jobs.
+
+  'gt rm all'
+
+3. Remove specific job(s).
+
+  'gt rm <job_id>[ ...]
 
 EXAMPLES
 --------
-TODO
+Remove all failed jobs that do not have any running tasks.::
+  gt rm
 
 AUTHOR
 ------
-Written by Maksim Lapin <mlapin@mpi-inf.mpg.de>.
+Written by Maksim Lapin.
 
 REPORTING BUGS
 --------------
-Issue tracking: http://github.com/mlapin/gtools/issues
+http://github.com/mlapin/gtools/issues

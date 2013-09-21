@@ -8,20 +8,31 @@ gt-re - Reschedule failed jobs
 SYNOPSIS
 --------
 [verse]
-'gt re' [--help] [all | <job_id> ...]
+'gt re' [--help] [all | <job_id>[ ...]]
 
 DESCRIPTION
 -----------
-TODO
+A wrapper around 'qmod -cj'.
+
+Clears the error state of failed jobs thus allowing them to be rescheduled.
+
+By default, the script clears the error state of all failed user jobs.
+
+If a list of job_id's is given, then only the specified jobs will have
+their error state cleared.
 
 EXAMPLES
 --------
-TODO
+Reschedule all user jobs that are currently in error state.::
+  gt re
+
+Clear error state of a specific job.::
+  gt re <job_id>
 
 AUTHOR
 ------
-Written by Maksim Lapin <mlapin@mpi-inf.mpg.de>.
+Written by Maksim Lapin.
 
 REPORTING BUGS
 --------------
-Issue tracking: http://github.com/mlapin/gtools/issues
+http://github.com/mlapin/gtools/issues

@@ -8,20 +8,96 @@ gt-file - Submit an array of commands listed in a file
 SYNOPSIS
 --------
 [verse]
-'gt file' [-g <size>] <file> [--] [<qsub args>...]
+'gt file' [--help] [options] <file> [-- <qsub options>]
+
+OPTIONS
+-------
+-g <N>::
+-g all::
+  group commands into batches (N lines per group, default: N=1)
+  use '-g all' to submit all commands in a single batch
+
+-a <N>::
+  make N attempts (resubmit up to N-1 times if command fails)
+
+-t <T>::
+  require h_rt=T (example: -t 4:00:00 or -t 14400)
+
+-m <M>::
+  require mem_free=M (example: -m 1G)
+
+-v <M>::
+  require h_vmem=M (example: -v 6G)
+
+-u <K>::
+  add a user-defined option
+
+-p::
+  profile the command (report time and resource usage)
+
+-M::
+  run MATLAB compiled code
+
+See `man qsub' for qsub options.
 
 DESCRIPTION
 -----------
-TODO
+A wrapper around 'qsub' with a similar functionality as the
+'commands2arrayjob.sh' script.
+
+Each line in a file corresponds to a single task that is executed via
+the Bash shell. Hence, all these things are allowed and should work:
+variable substitution (e.g. $JOB_ID, $SGE_TASK_ID, etc), pipes (|), and (&&),
+semicolon (;), comments (#), etc.
+
+Note: every line must end with a newline character (\n), in particular,
+the last line as well (otherwise it will not be included).
+This is due to the way 'wc -l' counts lines.
+
+The above listed options apply to the 'gt file' script only.
+The script will also use the default qsub options (if any) defined in
+'gt-setup' and the user config. These can be overriden by specifying
+new values after the -- (see examples).
+
+To see all the qsub option that will be used without actually submitting a job
+use 'gt --dry-run file ...'.
 
 EXAMPLES
 --------
-TODO
+Submit the commands.txt file as an array job (one line one task).::
+  gt file commands.txt
+
+Submit an array job with groups of 10 lines per task.::
+  gt file -g 10 commands.txt
+
+Submit a job with a single task that includes all lines.::
+  gt file -g all commands.txt
+
+Use the standard qsub options to override e.g. the inferred name.::
+  gt file commands.txt -- -N 'My commands'
+
+Request 2 days of wallclock time and 8G of virtual memory per task.::
+  gt file -t 48:00:00 -v 8G commands.txt
+
+Submit to D2 cluster (D2blade|D2compute|D2parallel).::
+  gt file -u d2 commands.txt
+
+Profile each task via the '/usr/bin/time -v'.::
+  gt file -p commands.txt
+
+Run MATLAB compiled code (sets all the necessary environment variables).::
+  gt file -M commands.txt
+  Note: the MCRROOT may need to be overriden in user config and should point
+  to the MATLAB Compiler Runtime of the appropriate version.
+
+SEE ALSO
+--------
+*gt*, *gt st*, *gt cmd*
 
 AUTHOR
 ------
-Written by Maksim Lapin <mlapin@mpi-inf.mpg.de>.
+Written by Maksim Lapin.
 
 REPORTING BUGS
 --------------
-Issue tracking: http://github.com/mlapin/gtools/issues
+http://github.com/mlapin/gtools/issues

@@ -8,20 +8,78 @@ gt-st - Show the status of Grid Engine jobs and queues
 SYNOPSIS
 --------
 [verse]
-'gt st' [--help] [<command> [options] | <qstat options>]
+'gt st'[--help] [<command> [options] | <qstat options>]
+
+COMMANDS
+--------
+my::
+  Show detailed user jobs summary (default)
+
+all::
+  Show cluster summary over all users
+
+OPTIONS (MY)
+------------
+-s::
+  display the output in the short format (one line per job)
+
+-r::
+  display the requested resources (default)
+
+-d::
+  display the working directory
+
+OPTIONS (ALL)
+-------------
+-s::
+  display the output in the short format (no cluster summary)
+
+OPTIONS (QSTAT)
+---------------
+  See `man qstat' for qstat options.
+
 
 DESCRIPTION
 -----------
-TODO
+A wrapper around qstat.
+
+The 'gt st' command operates in three regimes described below.
+
+1. (default) User jobs summary.
+
+  `gt st`
+
+  `gt st my [options]`
+
+  `gt st me [options]`
+
+2. All jobs summary.
+
+  `gt st all [options]`
+
+3. The standard qstat.
+
+  `gt st [<qstat options>]`
 
 EXAMPLES
 --------
-TODO
+Check status of my jobs.::
+  gt st
+
+Check cluster summary.::
+  gt st all
+
+Check job details (standard qstat).::
+  gt st -j <job_id>
+
+SEE ALSO
+--------
+*gt*, *gt cmd*, *gt file*
 
 AUTHOR
 ------
-Written by Maksim Lapin <mlapin@mpi-inf.mpg.de>.
+Written by Maksim Lapin.
 
 REPORTING BUGS
 --------------
-Issue tracking: http://github.com/mlapin/gtools/issues
+http://github.com/mlapin/gtools/issues
