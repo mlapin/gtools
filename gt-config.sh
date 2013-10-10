@@ -52,17 +52,17 @@ LOG_DIR="${LOG_DIR}"
 
 # Default qsub options (see 'man qsub')
 # These options are ALWAYS included in the qsub command (before any other args)
-declare -a QSUB_OPT=( \
-    -cwd -V -r y -j y -l 'h_rt=14400,h_vmem=2G,mem_free=2G' \
-    -o "\${LOG_DIR}/\${LOG_SUBDIR}" -e "\${LOG_DIR}/\${LOG_SUBDIR}" \
+declare -a QSUB_OPT=( \\
+    -cwd -V -r y -j y -l 'h_rt=14400,h_vmem=2G,mem_free=2G' \\
+    -o "\${LOG_DIR}/\${LOG_SUBDIR}" -e "\${LOG_DIR}/\${LOG_SUBDIR}" \\
     )
 
 # Default user-defined qsub options (see 'man qsub')
 # These options are activated via the '-u <option key>' parameter
-declare -A USER_QSUB_OPT=( \
-    [4h]='-l h_rt=4::' \
-    [7d]='-l h_rt=168::' \
-    [d2]='-l reserved=D2blade|D2compute|D2parallel' \
+declare -A USER_QSUB_OPT=( \\
+    [4h]='-l h_rt=4::' \\
+    [7d]='-l h_rt=168::' \\
+    [d2]='-l reserved=D2blade|D2compute|D2parallel' \\
     )
 
 EOF
