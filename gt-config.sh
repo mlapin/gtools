@@ -50,28 +50,20 @@ MAX_ATTEMPTS="${MAX_ATTEMPTS}"
 # Path to the logs directory
 LOG_DIR="${LOG_DIR}"
 
-# Expression for the name of the logs subdirectory
-# If not empty, this expression will be evaluated at submission time
-# and the corresponding folder will be created as a subfolder of LOG_DIR.
-# Has limited support for variables:
-#   only \$HOME, \$USER, \$JOB_ID, and \$JOB_NAME can be used,
-#   the variables must appear exactly as given above (i.e. no curly braces),
-#   avoid the underscore character (causes ambiguities in variable names).
-#LOG_SUBDIR="\$JOB_ID-\$JOB_NAME"
-
-# Path to the temporary metadata storage
-META_DIR="${META_DIR}"
-
 # Default qsub options (see 'man qsub')
-# These options are always included in the qsub command (before any other args)
-declare -a QSUB_OPT=( $(printf '%q ' ${QSUB_OPT[@]}))
+# These options are ALWAYS included in the qsub command (before any other args)
+declare -a QSUB_OPT=( \
+    -cwd -V -r y -j y -l 'h_rt=14400,h_vmem=2G,mem_free=2G' \
+    -o "\${LOG_DIR}/\${LOG_SUBDIR}" -e "\${LOG_DIR}/\${LOG_SUBDIR}" \
+    )
 
 # Default user-defined qsub options (see 'man qsub')
 # These options are activated via the '-u <option key>' parameter
-declare -A USER_QSUB_OPT=( $( \
-  for key in "${!USER_QSUB_OPT[@]}"; do \
-    printf "[%s]='%s' " "${key}" "${USER_QSUB_OPT[${key}]}"; \
-  done; ))
+declare -A USER_QSUB_OPT=( \
+    [4h]='-l h_rt=4::' \
+    [7d]='-l h_rt=168::' \
+    [d2]='-l reserved=D2blade|D2compute|D2parallel' \
+    )
 
 EOF
 
