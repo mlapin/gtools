@@ -65,9 +65,8 @@ MOD_CMD="${MOD_CMD:-"qmod"}"
 STAT_CMD="${STAT_CMD:-"qstat"}"
 ALTER_CMD="${ALTER_CMD:-"qalter"}"
 SUBMIT_CMD="${SUBMIT_CMD:-"qsub"}"
-SUBMIT_HOST="${SUBMIT_HOST:-"submit-squeeze"}"
-PRE_HOOK="${PRE_HOOK:-"cd '${PWD}' && \
-source /n1_grid/current/inf/common/settings.sh"}"
+SUBMIT_HOST="${SUBMIT_HOST:-"submit-wheezy"}"
+PRE_HOOK="${PRE_HOOK:-"cd '${PWD}'"}"
 
 # The command for measuring running time and resource usage
 TIMEIT_CMD="${TIMEIT_CMD:-"/usr/bin/time -v"}"
