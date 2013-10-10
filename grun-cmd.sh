@@ -4,12 +4,12 @@
 # Executes a command
 set -e
 
-. "${0%/*}/gt-setup.sh"
+. "$1/gt-setup.sh"
 
-MAX_ATTEMPTS="$1"
-timeit="$2"
-matlab="$3"
-shift 3
+MAX_ATTEMPTS="$2"
+timeit="$3"
+matlab="$4"
+shift 4
 
 # Setup traps to report received signals
 trap 'log_signal HUP' HUP

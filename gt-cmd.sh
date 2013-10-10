@@ -87,6 +87,7 @@ main() {
   qsubmit -N "${cmd_name}" \
     "${QSUB_OPT[@]}" \
     "${LOCAL_DIR}/grun-cmd.sh" \
+    "${LOCAL_DIR}" \
     "${MAX_ATTEMPTS}" \
     "${timeit}" \
     "${matlab}" \
