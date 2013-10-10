@@ -125,7 +125,7 @@ show_my_details() {
     /^waiting$/ { print_title("Pending jobs", "'"${FONT_YELLOW}"'") }
     /^error$/ { print_title("Failed jobs", "'"${FONT_RED}"'") }
     /^other$/ { print_title("Other jobs", "'"${FONT_BLUE}"'") }
-    /^[0-9]+ / { if (report) {
+    /^ +[0-9]+ / { if (report) {
       printf("%s %s %-5s %10s '"${FONT_BOLD} ${sfmt} ${FONT_NORM} ${sfmt}"'\n",
         $1, $2, $3, tasks[$1], name[$1], $4)
       if ('"${SHOW_DETAILS}"') {
