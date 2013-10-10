@@ -108,6 +108,7 @@ show_my_details() {
 
   # Display job details
   details=$(qstatus -j "${jobids}")
+  verbose "${details}"$'\n<<<end>>>\n'"${myjobs}"
   gawk \
     'function print_title(title, color) {
       printf("%s'"${FONT_UL_ON}"'%s'"${FONT_UL_OFF}:${FONT_NORM}"'\n",
