@@ -104,7 +104,6 @@ main() {
     -t "1-${total}:${step}" \
     "${QSUB_OPT[@]}" \
     "${LOCAL_DIR}/grun-file.sh" \
-    "${LOCAL_DIR}" \
     "${MAX_ATTEMPTS}" \
     "${timeit}" \
     "${matlab}" \
