@@ -61,8 +61,6 @@ main() {
   LOCAL_DIR="${abspath%/*}" # used in the setup script
   . "${LOCAL_DIR}/gt-setup.sh" || exit 1
 
-  read_config "$@"
-
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --version)
@@ -77,7 +75,6 @@ main() {
       --conf*)
         shift
         CONFIG_FILE="$1"
-        read_config "$@" # re-read the config
         ;;
       --dry*)
         DRY_RUN=1
@@ -86,6 +83,12 @@ main() {
         VERBOSE=1
         ;;
       *)
+        if [[ -f "${CONFIG_FILE}" ]]; then
+          verbose "config: ${CONFIG_FILE}"
+          . "${CONFIG_FILE}" "$@"
+        else
+          verbose "config file does not exist: ${CONFIG_FILE}"
+        fi
         if [[ -e "${LOCAL_DIR}/gt-$1.sh" ]]; then
           local cmd="$1"
           shift

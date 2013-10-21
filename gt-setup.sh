@@ -194,15 +194,6 @@ run_on_submit_host() {
   fi
 }
 
-read_config() {
-  if [[ -s "${CONFIG_FILE}" && -f "${CONFIG_FILE}" ]]; then
-    . "${CONFIG_FILE}" "$@"
-    verbose "loaded config: ${CONFIG_FILE}"
-  else
-    verbose "config file is empty or does not exist: ${CONFIG_FILE}"
-  fi
-}
-
 parse_qsub_opt() {
   # Cannot use getopts because it would stop at the first non-option argument
   while [[ $# -gt 0 ]]; do
