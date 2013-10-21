@@ -210,7 +210,13 @@ update_qsub_opt() {
 
   # Second, add any user-defined options if requested by the -u <key> option
   for key in "${USER_QSUB_KEY[@]}"; do
-    QSUB_OPT+=(${USER_QSUB_OPT[${key}]}) # no quotes, need word splitting
+    if [[ ${USER_QSUB_OPT[${key}]+isset} ]]; then
+      QSUB_OPT+=(${USER_QSUB_OPT[${key}]}) # no quotes, allow word splitting
+    else
+      echo "${name}: unknown option: ${key}" >&2
+      echo "  (available options: ${!USER_QSUB_OPT[*]})" >&2
+      exit 1
+    fi
   done
 
   # Third, add resource limits from the shortcut options (e.g. -t <time>)
