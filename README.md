@@ -1,14 +1,14 @@
-Grid Engine Tools (`gtools`)
+Grid Engine Tools (gtools)
 ============================
 
 `gtools` is a collection of bash / awk scripts that make your life [much]
 easier when running thousands of jobs with a Sun Grid Engine (SGE).
 And I really mean hundreds of thousands of jobs.
 
-The three most important features are
-1. transparent `ssh` to a submit host;
-2. detection of failed jobs;
-3. running Matlab compiled code.
+The three most important *features* are
+- transparent `ssh` to a submit host;
+- detection of failed jobs;
+- running Matlab compiled code.
 
 The first feature is important because every interaction with the SGE happens
 via `qsub`/`qstat`/etc. commands that can only be run on a submit host.
@@ -24,9 +24,18 @@ rather than the whole array job.
 and returning a special exit code to the SGE cluster,
 which puts that single task into an error state.
 
-You get an overview of running / pending / failed jobs by running `gt st`.
-If you want to see which tasks failed, run `gt st -j <job_id>`.
-And if you want to simply resubmit the failed tasks, just run `gt re`.
+You get an overview of _running_ / _pending_ / _failed_ jobs by running
+```
+gt st
+```
+If you want to see which tasks failed, run
+```
+gt st -j <job_id>
+```
+And if you want to simply resubmit the failed tasks, just run
+```
+gt re
+```
 
 Finally, the third main feature enables one to run Matlab compiled code
 like a normal binary by setting all the necessary environment variables
@@ -36,18 +45,19 @@ There is a number of other features like grouping of tasks,
 custom user options, automatic resubmition of failed jobs
 (which is not recommended and may be removed in future releases),
 setting resource limits more conveniently, etc.
+
 Just try `gt` to see the list of commands and
 `gt help <command>` to learn more about the given command.
 
 
 Installation (GNU/Linux)
 ------------------------
-1. Clone the repository:
+- Clone the repository:
 ```
 git clone https://github.com/mlapin/gtools.git
 ```
 
-2. Make sure the `gt` script is in your `$PATH`.
+- Make sure the `gt` script is in your `$PATH`.
 
 Hint: either add the `gtools` folder to your `$PATH` or
 create a symlink to `gt` in a folder that is already in the `$PATH`, like so:
@@ -55,7 +65,7 @@ create a symlink to `gt` in a folder that is already in the `$PATH`, like so:
 ln -s /path/to/gtools/gt
 ```
 
-3. Run `gt check` to see if everything has been setup correctly.
+- Run `gt check` to see if everything has been setup correctly.
 
 
 Troubleshooting
