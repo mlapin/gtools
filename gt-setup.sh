@@ -32,7 +32,7 @@ LOG_DIR="${LOG_DIR:-"/scratch/common/pool0/${USER}/logs"}"
 LOG_SUBDIR="${LOG_SUBDIR:-"\$JOB_ID-\$JOB_NAME"}"
 
 # Path to the temporary metadata storage
-META_DIR="${META_DIR:-"/scratch/common/pool0/.gtools"}"
+META_DIR="${META_DIR:-"/scratch/BS/pool0/.gtools"}"
 
 # Path to the folder with the gtools scripts
 LOCAL_DIR="${LOCAL_DIR:-"${0%/*}"}"
@@ -42,10 +42,11 @@ MAN_DIR="${MAN_DIR:-"${LOCAL_DIR}/man"}"
 
 # Default qsub options (see 'man qsub')
 # These options are always included in the qsub command (before any other args)
+# -o "${LOG_DIR}/${LOG_SUBDIR}" -e "${LOG_DIR}/${LOG_SUBDIR}" \
 if [[ -z "${QSUB_OPT}" ]]; then
   declare -a QSUB_OPT=( \
     -cwd -V -r y -j y -l 'h_rt=14400,h_vmem=2G,mem_free=2G' \
-    -o "${LOG_DIR}/${LOG_SUBDIR}" -e "${LOG_DIR}/${LOG_SUBDIR}" \
+    -o /dev/null -e /dev/null \
     )
 fi
 
@@ -96,9 +97,20 @@ MCC_OPTS="-R -singleCompThread -R -nodisplay -R -nosplash -v"
 MCR_CACHE_ROOT="/var/tmp"
 MCR_CACHE_SIZE="256M"
 
-MCRROOT="/local/gridengine/general/MATLAB_Compiler_Runtime/v81"
+#MCRROOT="/local/gridengine/general/MATLAB_Compiler_Runtime/v84"
+#if [[ ! -d "${MCRROOT}" ]]; then
+#  MCRROOT="/BS/opt/local/MATLAB_Compiler_Runtime/v84"
+#fi
+#MCRROOT="/scratch/BS/pool0/mcr/v84"
+MCRROOT="/var/tmp/mcr/v84"
 if [[ ! -d "${MCRROOT}" ]]; then
-  MCRROOT="/BS/opt/local/MATLAB_Compiler_Runtime/v81"
+  MCRROOT="/local/gridengine/general/MATLAB_Compiler_Runtime/v84"
+  if [[ ! -d "${MCRROOT}" ]]; then
+    MCRROOT="/scratch/BS/pool0/mcr/v84"
+    if [[ ! -d "${MCRROOT}" ]]; then
+      MCRROOT="/BS/opt/local/MATLAB_Compiler_Runtime/v84"
+    fi
+  fi
 fi
 
 MCRJRE="${MCRROOT}/sys/java/jre/glnxa64/jre/lib/amd64"

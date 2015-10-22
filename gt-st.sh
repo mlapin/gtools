@@ -175,9 +175,11 @@ show_all() {
     }
     NR <= 2 { next }
     { t = r + e + w
-      user = substr($0, 28, 12)
-      status = substr($0, 41, 5) }
-    status ~ '"${STAT_RUNNING}"' { r++; rc[user]++ }
+      user = substr($0, 28, 12); gsub(/[ \t]+$/,"",user)
+      status = substr($0, 41, 5); gsub(/[ \t]+$/,"",status)
+      slots = substr($0, 102, 2); gsub(/[ \t]+$/,"",slots)
+    }
+    status ~ '"${STAT_RUNNING}"' { r=r+(slots); rc[user]=rc[user]+(slots) }
     status ~ '"${STAT_ERROR}"' { e++; ec[user]++ }
     status ~ '"${STAT_WAITING}"' { w++; wc[user]++
       if (w == 1 || wp[user] < $2) wp[user] = $2
