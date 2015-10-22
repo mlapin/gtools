@@ -1,34 +1,34 @@
 Grid Engine Tools (gtools)
 ============================
 
-`gtools` is a collection of bash / awk scripts that make your life [much]
+`gtools` is a collection of bash / awk scripts that make your life _much_
 easier when running thousands of jobs with a Sun Grid Engine (SGE).
 And I really mean hundreds of thousands of jobs.
 
-The three most important *features* are
+The three most important **features** are:
 - transparent `ssh` to a submit host;
 - detection of failed jobs;
 - running Matlab compiled code.
 
 The first feature is important because every interaction with the SGE happens
-via `qsub`/`qstat`/etc. commands that can only be run on a submit host.
+via `qsub`/`qstat`/etc. commands which can only be run on a _submit host_.
 `gtools` do that automatically, so that you can interact with the cluster
-directly from your workstation at any time.
+directly from your _workstation_ at any time.
 
 The second feature is probably the most important.
 When running dozens of array jobs each containing tens or even hundreds of
 tasks, it is almost inevitable that a few of those tasks will fail.
-The problem is then how to identify and resubmit only these few failed tasks
-rather than the whole array job.
+The problem is then to _identify_ and _resubmit_
+only these few failed tasks rather than the whole array job.
 `gtools` do that by detecting a non-zero exit code of a failed command
-and returning a special exit code to the SGE cluster,
-which puts that single task into an error state.
+and returning a special exit code to the SGE daemon,
+which then puts that single task into an error state.
 
 You get an overview of _running_ / _pending_ / _failed_ jobs by running
 ```
 gt st
 ```
-If you want to see which tasks failed, run
+If you want to see details like which tasks are running or failed, run
 ```
 gt st -j <job_id>
 ```
@@ -46,8 +46,8 @@ custom user options, automatic resubmition of failed jobs
 (which is not recommended and may be removed in future releases),
 setting resource limits more conveniently, etc.
 
-Just try `gt` to see the list of commands and
-`gt help <command>` to learn more about the given command.
+Just try `gt` to see a list of commands and
+`gt help <command>` to learn more about any command.
 
 
 Installation (GNU/Linux)
@@ -59,7 +59,7 @@ git clone https://github.com/mlapin/gtools.git
 
 - Make sure the `gt` script is in your `$PATH`.
 
-Hint: either add the `gtools` folder to your `$PATH` or
+_Hint_: either add the `gtools` folder to your `$PATH` or
 create a symlink to `gt` in a folder that is already in the `$PATH`, like so:
 ```
 ln -s /path/to/gtools/gt
