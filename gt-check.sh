@@ -73,7 +73,7 @@ main() {
   echo
 
   echo "${name}: verifying that the MATLAB MCR is installed..."
-  if [[ -d "${MCRROOT}" && -x "${MCRROOT}/bin/matlab" ]]; then
+  if [[ -d "${MCRROOT}" && -x "${MCRROOT}/bin/mex" ]]; then
     echo "  OK: MCR directory is: ${MCRROOT}"
   else
     echo "  ERROR: cannot find MCR at: ${MCRROOT}"
