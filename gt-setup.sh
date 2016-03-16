@@ -46,7 +46,7 @@ MAN_DIR="${MAN_DIR:-"${LOCAL_DIR}/man"}"
 if [[ -z "${QSUB_OPT}" ]]; then
   declare -a QSUB_OPT=( \
       -cwd -V -r y -j y -l 'h_rt=14400,h_vmem=2G,mem_free=2G' \
-      -o "\${LOG_DIR}/\${LOG_SUBDIR}" -e /dev/null \
+      -o "${LOG_DIR}/${LOG_SUBDIR}" -e /dev/null \
     )
 fi
 
