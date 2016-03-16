@@ -10,7 +10,6 @@ usage: ${name/-/ } [--help] [options] <file> [-- <qsub options>]
 
     -g <N>    group commands into batches (N lines per group, default: N=1)
               use '-g all' to submit all commands in a single batch
-    -a <N>    make N attempts (resubmit up to N-1 times if command fails)
     -t <T>    require h_rt=T (example: -t 4:: or -t 14400)
     -m <M>    require mem_free=M (example: -m 1G)
     -v <M>    require h_vmem=M (example: -v 6G)

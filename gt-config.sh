@@ -44,8 +44,8 @@ main() {
 # Automatically created by ${name} on $(date "+%Y-%m-%d %H:%M:%S") using
 # $(/bin/bash --version | head -n 1)
 
-# Maximum number of attempts to execute a command
-MAX_ATTEMPTS="${MAX_ATTEMPTS}"
+# Path to gtools metadata
+SUBMIT_HOST="submit-wheezy"
 
 # Path to the logs directory
 LOG_DIR="${LOG_DIR}"
@@ -54,7 +54,7 @@ LOG_DIR="${LOG_DIR}"
 # These options are ALWAYS included in the qsub command (before any other args)
 declare -a QSUB_OPT=( \\
     -cwd -V -r y -j y -l 'h_rt=14400,h_vmem=2G,mem_free=2G' \\
-    -o "\${LOG_DIR}/\${LOG_SUBDIR}" -e "\${LOG_DIR}/\${LOG_SUBDIR}" \\
+    -o "\${LOG_DIR}/\${LOG_SUBDIR}" -e /dev/null \\
     )
 
 # Default user-defined qsub options (see 'man qsub')
@@ -63,7 +63,20 @@ declare -A USER_QSUB_OPT=( \\
     [4h]='-l h_rt=4::' \\
     [7d]='-l h_rt=168::' \\
     [d2]='-l reserved=D2blade|D2compute|D2parallel' \\
+    [d2blade]='-l reserved=D2blade' \\
+    [32threads]='-v MKL_DYNAMIC=FALSE -v MKL_NUM_THREADS=32 -v OMP_DYNAMIC=FALSE -v OMP_NUM_THREADS=32 -pe 8thread 32' \\
+    [24threads]='-v MKL_DYNAMIC=FALSE -v MKL_NUM_THREADS=24 -v OMP_DYNAMIC=FALSE -v OMP_NUM_THREADS=24 -pe 8thread 24' \\
+    [16threads]='-v MKL_DYNAMIC=FALSE -v MKL_NUM_THREADS=16 -v OMP_DYNAMIC=FALSE -v OMP_NUM_THREADS=16 -pe 8thread 16' \\
+    [14threads]='-v MKL_DYNAMIC=FALSE -v MKL_NUM_THREADS=14 -v OMP_DYNAMIC=FALSE -v OMP_NUM_THREADS=14 -pe 8thread 14' \\
+    [8threads]='-v MKL_DYNAMIC=FALSE -v MKL_NUM_THREADS=8 -v OMP_DYNAMIC=FALSE -v OMP_NUM_THREADS=8 -pe 8thread 8' \\
+    [7threads]='-v MKL_DYNAMIC=FALSE -v MKL_NUM_THREADS=7 -v OMP_DYNAMIC=FALSE -v OMP_NUM_THREADS=7 -pe 8thread 7' \\
+    [4threads]='-v MKL_DYNAMIC=FALSE -v MKL_NUM_THREADS=4 -v OMP_DYNAMIC=FALSE -v OMP_NUM_THREADS=4 -pe 8thread 4' \\
+    [2threads]='-v MKL_DYNAMIC=FALSE -v MKL_NUM_THREADS=2 -v OMP_DYNAMIC=FALSE -v OMP_NUM_THREADS=2 -pe 8thread 2' \\
+    [1threads]='-v MKL_DYNAMIC=FALSE -v MKL_NUM_THREADS=1 -v OMP_DYNAMIC=FALSE -v OMP_NUM_THREADS=1' \\
     )
+
+# Matlab Compiler options
+MCC_OPTS="-R -singleCompThread -R -nodisplay -R -nosplash -v"
 
 EOF
 

@@ -20,7 +20,7 @@ MAX_ATTEMPTS="${MAX_ATTEMPTS:-1}"
 CONFIG_FILE="${CONFIG_FILE:-"${HOME}/.gtrc"}"
 
 # Path to the logs directory
-LOG_DIR="${LOG_DIR:-"/scratch/common/pool0/${USER}/logs"}"
+LOG_DIR="${LOG_DIR:-"/scratch/BS/pool0/${USER}/logs"}"
 
 # Expression for the name of the logs subdirectory
 # If not empty, this expression will be evaluated at submission time
@@ -32,7 +32,7 @@ LOG_DIR="${LOG_DIR:-"/scratch/common/pool0/${USER}/logs"}"
 LOG_SUBDIR="${LOG_SUBDIR:-"\$JOB_ID-\$JOB_NAME"}"
 
 # Path to the temporary metadata storage
-META_DIR="${META_DIR:-"/scratch/BS/pool0/.gtools"}"
+META_DIR="${META_DIR:-"${HOME}/.gtools"}"
 
 # Path to the folder with the gtools scripts
 LOCAL_DIR="${LOCAL_DIR:-"${0%/*}"}"
@@ -45,8 +45,8 @@ MAN_DIR="${MAN_DIR:-"${LOCAL_DIR}/man"}"
 # -o "${LOG_DIR}/${LOG_SUBDIR}" -e "${LOG_DIR}/${LOG_SUBDIR}" \
 if [[ -z "${QSUB_OPT}" ]]; then
   declare -a QSUB_OPT=( \
-    -cwd -V -r y -j y -l 'h_rt=14400,h_vmem=2G,mem_free=2G' \
-    -o /dev/null -e /dev/null \
+      -cwd -V -r y -j y -l 'h_rt=14400,h_vmem=2G,mem_free=2G' \
+      -o "\${LOG_DIR}/\${LOG_SUBDIR}" -e /dev/null \
     )
 fi
 
@@ -56,7 +56,6 @@ if [[ -z "${USER_QSUB_OPT}" ]]; then
   declare -A USER_QSUB_OPT=( \
     [4h]='-l h_rt=4::' \
     [7d]='-l h_rt=168::' \
-    [d2]='-l reserved=D2blade|D2compute|D2parallel' \
     )
 fi
 
@@ -102,13 +101,13 @@ MCR_CACHE_SIZE="256M"
 #  MCRROOT="/BS/opt/local/MATLAB_Compiler_Runtime/v84"
 #fi
 #MCRROOT="/scratch/BS/pool0/mcr/v84"
-MCRROOT="/var/tmp/mcr/v84"
+MCRROOT="/var/tmp/mcr/v90"
 if [[ ! -d "${MCRROOT}" ]]; then
-  MCRROOT="/local/gridengine/general/MATLAB_Compiler_Runtime/v84"
+  MCRROOT="/local/gridengine/general/MATLAB_Compiler_Runtime/v90"
   if [[ ! -d "${MCRROOT}" ]]; then
-    MCRROOT="/scratch/BS/pool0/mcr/v84"
+    MCRROOT="/scratch/BS/pool0/mcr/v90"
     if [[ ! -d "${MCRROOT}" ]]; then
-      MCRROOT="/BS/opt/local/MATLAB_Compiler_Runtime/v84"
+      MCRROOT="/BS/opt/local/MATLAB_Compiler_Runtime/v90"
     fi
   fi
 fi
@@ -255,29 +254,30 @@ command_failed() {
   local code=$?
 
   # Skip the retry/stop workflow and just exit
-  if [[ ${MAX_ATTEMPTS} -lt 1 ]]; then
-    log_error "ERROR: ${code}: $@"
-    exit ${code}
-  fi
+  #if [[ ${MAX_ATTEMPTS} -lt 1 ]]; then
+  #  log_error "ERROR: ${code}: $@"
+  #  exit ${code}
+  #fi
 
   # Append a dot '.' to the job/task file to count the number of attempts,
   # then check its size to decide whether to stop or retry
-  mkdir -p "${META_DIR}/${JOB_ID}"
-  local fname="${META_DIR}/${JOB_ID}/${TID}"
-  printf '.' >> "${fname}"
+  #mkdir -p "${META_DIR}/${JOB_ID}"
+  #local fname="${META_DIR}/${JOB_ID}/${TID}"
+  #printf '.' >> "${fname}"
 
   # Read the file into a local variable
-  local attempts
-  attempts=$(<"${fname}") || log_error "Cannot read metadata: ${fname}"
+  #local attempts
+  #attempts=$(<"${fname}") || log_error "Cannot read metadata: ${fname}"
 
   # Decide whether to stop or retry (reschedule)
-  if [[ ${#attempts} -lt ${MAX_ATTEMPTS} ]]; then
-    log_error "ERROR: ${code}: RETRY (${#attempts}/${MAX_ATTEMPTS}): $@"
-    exit ${RET_RESUB}
-  else
-    log_error "ERROR: ${code}: STOP (${#attempts}/${MAX_ATTEMPTS}): $@"
+  #if [[ ${#attempts} -lt ${MAX_ATTEMPTS} ]]; then
+  #  log_error "ERROR: ${code}: RETRY (${#attempts}/${MAX_ATTEMPTS}): $@"
+  #  exit ${RET_RESUB}
+  #else
+  #  log_error "ERROR: ${code}: STOP (${#attempts}/${MAX_ATTEMPTS}): $@"
+    log_error "ERROR: exit code ${code}, command: $@"
     exit ${RET_STOP}
-  fi
+  #fi
 }
 
 cleanup_metadata() {
