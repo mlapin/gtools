@@ -44,7 +44,7 @@ main() {
 # Automatically created by ${name} on $(date "+%Y-%m-%d %H:%M:%S") using
 # $(/bin/bash --version | head -n 1)
 
-# Path to gtools metadata
+# SGE submit host
 SUBMIT_HOST="submit-wheezy"
 
 # Path to the logs directory
