@@ -53,7 +53,7 @@ LOG_DIR="${LOG_DIR}"
 # Default qsub options (see 'man qsub')
 # These options are ALWAYS included in the qsub command (before any other args)
 declare -a QSUB_OPT=( \\
-    -cwd -V -r y -j y -l 'h_rt=14400,h_vmem=2G,mem_free=2G' \\
+    -cwd -V -b y -r y -j y -l 'h_rt=14400,h_vmem=2G,mem_free=2G' \\
     -o "\${LOG_DIR}/\${LOG_SUBDIR}" -e /dev/null \\
     )
 
