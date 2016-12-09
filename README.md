@@ -2,10 +2,10 @@ Grid Engine Tools (gtools)
 ============================
 
 `gtools` is a collection of bash / awk scripts that make your life easy
-when running thousands of jobs with a Sun Grid Engine (SGE).
+when running jobs with the Sun Grid Engine (SGE).
 
 The three most important **features** are:
-- transparent `ssh` to a submit host;
+- transparent ssh to a submit host;
 - detection of failed jobs;
 - running Matlab compiled code.
 
@@ -21,8 +21,8 @@ tens or even hundreds of tasks, it is quite common that a few of those
 tasks may fail. The problem is then to identify and resubmit
 only these few failed tasks rather than the whole array job.
 `gtools` do that by detecting a **non-zero exit code** of a failed command.
-When and returning a special exit code to the SGE daemon,
-which then puts that single task into an error state.
+When that happens, a wrapper script from `gtools` returns a special exit code
+to the SGE daemon, which then puts that one given task into an error state.
 
 You get an overview of _running_ / _pending_ / _failed_ jobs by running
 ```
@@ -49,6 +49,7 @@ Just try `gt` to see a list of commands and
 `gt help <command>` to learn more about any given command.
 
 
+
 Installation (GNU/Linux)
 ------------------------
 - Clone the repository:
@@ -67,9 +68,30 @@ ln -s /path/to/gtools/gt
 - Run `gt check` to see if everything has been setup correctly.
 
 
+
+Minimal Working Example
+------------------------
+- Prepare a text file with commands
+```
+for i in `seq 5`; do echo "echo 'line $i:'" '"running job $JOB_ID, task $SGE_TASK_ID"' >> cmd.txt; done
+```
+
+- Submit a job
+```
+gt file cmd.txt
+```
+
+- Check job status
+```
+gt st
+```
+
+_Hint_: use `gt check` to verify the logs directory.
+
+
+
 Troubleshooting
 ------------------------
-
 - run `gt check -v`
 - check `gt-setup.sh`
 - create a user config (`gt config`) and modify it according to your needs.
