@@ -17,15 +17,21 @@ usage: ${name/-/ } [--version] [--help]
           <command> [<args>]
 
 Commands:
-   check      Check if gtools are ready to use
-   config     Create a user config file
-   cmd        Submit a single command
-   file       Submit a set of commands listed in a file
-   mcc        Compile a Matlab function
-   st         Show the status of submitted jobs
-   re         Reschedule failed jobs
-   rm         Remove jobs
-   alter      Modify jobs
+[most common]
+  st          show the status of jobs on the cluster
+  file        submit a job from the commands listed in a text file
+  re          reschedule (resubmit) failed jobs
+  rm          remove jobs
+  alter       modify jobs
+
+[configuration]
+  check       check if gtools are setup and ready to use
+  config      create a user config file (optional, enables fine-tuning)
+
+[advanced]
+  cmd         submit a single command from the command line
+  mcc         compile Matlab code
+  r           run a command on the submit host
 
 See \`${name/-/ } help <command>' for more information on a specific command.
 EOF
